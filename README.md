@@ -16,6 +16,7 @@
 ![Dashboard](https://img.shields.io/badge/dashboard-Full%20HD-ff69b4)
 
 <!-- Dynamic badges (auto-update from GitHub) -->
+[![CI](https://github.com/net365srl/zabbix/actions/workflows/validate.yml/badge.svg)](https://github.com/net365srl/zabbix/actions/workflows/validate.yml)
 [![Stars](https://img.shields.io/github/stars/net365srl/zabbix?style=social)](https://github.com/net365srl/zabbix/stargazers)
 [![Forks](https://img.shields.io/github/forks/net365srl/zabbix?style=social)](https://github.com/net365srl/zabbix/network/members)
 <br>
@@ -23,7 +24,6 @@
 [![Issues](https://img.shields.io/github/issues/net365srl/zabbix)](https://github.com/net365srl/zabbix/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/net365srl/zabbix)](https://github.com/net365srl/zabbix/pulls)
 [![Last Commit](https://img.shields.io/github/last-commit/net365srl/zabbix)](https://github.com/net365srl/zabbix/commits/main)
-[![Release](https://img.shields.io/github/v/release/net365srl/zabbix?display_name=tag)](https://github.com/net365srl/zabbix/releases)
 [![Repo Size](https://img.shields.io/github/repo-size/net365srl/zabbix)](https://github.com/net365srl/zabbix)
 [![Contributors](https://img.shields.io/github/contributors/net365srl/zabbix)](https://github.com/net365srl/zabbix/graphs/contributors)
 
@@ -95,7 +95,11 @@ For **SNMPv3**, switch the host SNMP interface to v3 and fill in the standard se
 │   │   ├── bug_report.yml
 │   │   ├── new_device_request.yml
 │   │   └── config.yml
+│   ├── workflows/
+│   │   └── validate.yml
 │   └── PULL_REQUEST_TEMPLATE.md
+├── scripts/
+│   └── validate_templates.py
 ├── hpe-instanton-1930/
 │   ├── README.md
 │   └── hpe_instanton_1930_snmp_zabbix74.yaml
@@ -116,6 +120,7 @@ These conventions are shared by every template in this repository:
 - **Aggregate throughput** — total in/out switch throughput via `sum(last_foreach(...))`.
 - **Full‑HD dashboard** — throughput, CPU (and memory where available), uptime, availability and an active‑problems widget.
 - **Zabbix 7.x schema** — template‑level triggers live at the root of `zabbix_export`, as required by Zabbix 6.0+.
+- **Continuous integration** — every push and pull request is automatically checked for YAML syntax, correct Zabbix structure and the absence of private data (see [`.github/workflows/validate.yml`](./.github/workflows/validate.yml)).
 
 ## Compatibility
 
@@ -131,7 +136,7 @@ Contributions are very welcome — bug fixes, new device families, extra items/t
 
 👉 **Please read the full [CONTRIBUTING.md](./CONTRIBUTING.md) before opening an issue or pull request.** It covers reporting bugs, requesting new devices, the PR workflow, template conventions, the validation checklist and privacy/legal notes.
 
-Issue and pull‑request templates are provided under [`.github/`](./.github) to guide you through the required information (model, firmware, Zabbix version, redacted SNMP walk).
+Issue and pull‑request templates are provided under [`.github/`](./.github) to guide you through the required information (model, firmware, Zabbix version, redacted SNMP walk). All contributions are automatically validated by the CI workflow before merge.
 
 In short:
 
