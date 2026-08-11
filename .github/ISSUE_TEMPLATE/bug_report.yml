@@ -1,1 +1,97 @@
+name: "🐛 Bug report"
+description: "Report an item that is Not supported, a wrong value, or an import error."
+title: "[Bug] <template> – <short description>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report!
+        Please **redact** community strings, IP addresses and serial numbers before submitting.
 
+  - type: dropdown
+    id: template
+    attributes:
+      label: Affected template
+      description: Which template is this about?
+      options:
+        - "HPE Instant On 1930 by SNMP"
+        - "Netgear GS748Tv5 by SNMP"
+        - "Other / not listed"
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Switch model
+      placeholder: "e.g. Aruba Instant On 1930 JL683A"
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      placeholder: "e.g. 2.9.0.4"
+    validations:
+      required: true
+
+  - type: input
+    id: zabbix
+    attributes:
+      label: Zabbix version
+      placeholder: "e.g. 7.4.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: snmp
+    attributes:
+      label: SNMP version in use
+      options:
+        - "v2c"
+        - "v3"
+        - "v1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What actually happened? Include exact error text if any (e.g. import error, "Not supported" reason).
+    validations:
+      required: true
+
+  - type: textarea
+    id: snmpwalk
+    attributes:
+      label: SNMP walk (redacted)
+      description: Relevant walk output for the failing OID. This is essential for OID-related issues.
+      render: shell
+      placeholder: |
+        snmpwalk -v2c -c ***** <switch-ip> 1.3.6.1.2.1.1
+        snmpwalk -v2c -c ***** <switch-ip> <vendor-enterprise-oid>
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I removed all private data (community strings, IPs, serials, hostnames).
+          required: true
+        - label: I am running Zabbix 7.0 or newer.
+          required: true
