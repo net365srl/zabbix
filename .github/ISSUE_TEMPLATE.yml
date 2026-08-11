@@ -1,1 +1,11 @@
-
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/NET365/zabbix-snmp-switch-templates#readme
+    about: Read the README and per-template docs before opening an issue.
+  - name: 🤝 Contributing guidelines
+    url: https://github.com/NET365/zabbix-snmp-switch-templates/blob/main/CONTRIBUTING.md
+    about: How to report bugs, request devices and submit pull requests.
+  - name: 💬 Zabbix community
+    url: https://www.zabbix.com/forum
+    about: General Zabbix questions not specific to these templates.
