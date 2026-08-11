@@ -52,7 +52,7 @@ jobs:
       # 3) Extra safety net: fail if obvious private data slips into any file.
       - name: Scan for private data
         run: |
-          if grep -RniE "bonaldo|rossano veneto|erika|poretto" \
+          if grep -RniE "" \
              --include="*.yaml" --include="*.yml" --include="*.md" .; then
             echo "::error::Private/sensitive data detected in repository files."
             exit 1
