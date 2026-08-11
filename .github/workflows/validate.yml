@@ -50,10 +50,16 @@ jobs:
           python scripts/validate_templates.py
 
       # 3) Extra safety net: fail if obvious private data slips into any file.
+      #    Note: this workflow file and the validator script legitimately
+      #    contain the denylist words, so they are excluded to avoid a
+      #    false positive on the tooling itself.
       - name: Scan for private data
         run: |
-          if grep -RniE "" \
-             --include="*.yaml" --include="*.yml" --include="*.md" .; then
+          if grep -RniE "bonaldo|rossano veneto|erika|poretto" \
+             --include="*.yaml" --include="*.yml" --include="*.md" \
+             --exclude="validate.yml" \
+             --exclude-dir=".git" \
+             . ; then
             echo "::error::Private/sensitive data detected in repository files."
             exit 1
           fi
