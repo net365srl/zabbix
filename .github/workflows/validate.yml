@@ -1,1 +1,60 @@
+name: Validate Zabbix templates
 
+# Run on pushes and pull requests that touch YAML files or the validator,
+# and allow manual runs from the Actions tab.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "scripts/validate_templates.py"
+      - ".github/workflows/validate.yml"
+  pull_request:
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "scripts/validate_templates.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: YAML syntax, structure & privacy checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml yamllint
+
+      # 1) Generic YAML linting (syntax/formatting) on the whole repo.
+      - name: yamllint (syntax & style)
+        run: |
+          yamllint -d "{extends: relaxed, rules: {line-length: disable}}" .
+
+      # 2) Project-specific validation (Zabbix structure + privacy denylist).
+      - name: Validate Zabbix templates
+        run: |
+          python scripts/validate_templates.py
+
+      # 3) Extra safety net: fail if obvious private data slips into any file.
+      - name: Scan for private data
+        run: |
+          if grep -RniE "bonaldo|rossano veneto|erika|poretto" \
+             --include="*.yaml" --include="*.yml" --include="*.md" .; then
+            echo "::error::Private/sensitive data detected in repository files."
+            exit 1
+          fi
+          echo "No private data found."
