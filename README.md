@@ -5,8 +5,16 @@
 ![Format](https://img.shields.io/badge/format-YAML-1A7C11)
 ![Templates](https://img.shields.io/badge/templates-2-2774A4)
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Contributions](https://img.shields.io/badge/PRs-welcome-brightgreen)
-![Maintenance](https://img.shields.io/badge/maintained-yes-success)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
+![Maintained](https://img.shields.io/badge/maintained-yes-success)
+<br>
+![Platform](https://img.shields.io/badge/platform-network%20switches-555555)
+![Vendors](https://img.shields.io/badge/vendors-HPE%20%7C%20Netgear-orange)
+![Monitoring](https://img.shields.io/badge/monitoring-SNMP%20polling-9cf)
+![Discovery](https://img.shields.io/badge/LLD-interfaces-blueviolet)
+![Dashboard](https://img.shields.io/badge/dashboard-Full%20HD-ff69b4)
+![Contributions](https://img.shields.io/badge/contributions-welcome-8A2BE2)
+![Status](https://img.shields.io/badge/status-stable-brightgreen)
 
 A collection of **community Zabbix 7.4 templates** to monitor smart‑managed switches over **SNMP**. Each template ships with vendor‑aware items, low‑level discovery (LLD) of network interfaces, ready‑to‑use triggers, per‑interface graphs and a Full‑HD overview dashboard. All OIDs are **numeric**, so no external MIB files need to be loaded into Zabbix.
 
@@ -21,7 +29,8 @@ A collection of **community Zabbix 7.4 templates** to monitor smart‑managed sw
 5. [Common Design Choices](#common-design-choices)
 6. [Compatibility](#compatibility)
 7. [Contributing](#contributing)
-8. [License](#license)
+8. [Trademarks & Disclaimer](#trademarks--disclaimer)
+9. [License](#license)
 
 ---
 
@@ -69,6 +78,7 @@ For **SNMPv3**, switch the host SNMP interface to v3 and fill in the standard se
 .
 ├── README.md                     ← this file
 ├── LICENSE
+├── CONTRIBUTING.md
 ├── hpe-instanton-1930/
 │   ├── README.md
 │   └── hpe_instanton_1930_snmp_zabbix74.yaml
@@ -100,14 +110,35 @@ Related switch models that share the same firmware/OID layout are often compatib
 
 ## Contributing
 
-Contributions are welcome! When opening an issue or pull request, please include:
+Contributions are very welcome — bug fixes, new device families, extra items/triggers, or documentation improvements.
 
-- Switch **model** and **firmware version**.
-- The **Zabbix version** you are running.
-- A short **SNMP walk** snippet for any OID‑related problem (e.g. `snmpwalk -v2c -c public <ip> <oid>`).
+👉 **Please read the full [CONTRIBUTING.md](./CONTRIBUTING.md) before opening an issue or pull request.** It covers reporting bugs, requesting new devices, the PR workflow, template conventions, the validation checklist and privacy/legal notes.
 
-Ideas for new device families and improvements to the existing templates are appreciated.
+In short:
+
+- **Search first**, then open an issue for anything larger than a small fix.
+- Include **model + firmware + Zabbix version** and a **redacted SNMP walk** in bug reports.
+- Follow the **template conventions** (numeric OIDs, macros for thresholds, no private data).
+- **Validate** the import, discovery and triggers before submitting.
+- Contributions are accepted under the project's **MIT License**.
+
+## Trademarks & Disclaimer
+
+This is an **unofficial, community‑maintained** project. It is **not affiliated with, endorsed by, or sponsored by** Hewlett Packard Enterprise (HPE), Aruba Networks, NETGEAR, Broadcom, or Zabbix.
+
+- **HPE**, **Aruba**, **Instant On**, and related names and logos are trademarks or registered trademarks of **Hewlett Packard Enterprise Development LP** and/or its affiliates.
+- **NETGEAR**, **ProSAFE**, and related names and logos are trademarks or registered trademarks of **NETGEAR, Inc.**
+- **Broadcom** and **FastPath** are trademarks or registered trademarks of **Broadcom Inc.** and/or its affiliates.
+- **Zabbix** is a registered trademark of **Zabbix SIA**.
+
+All product names, logos, and brands are the property of their respective owners. They are used in this repository **for identification and descriptive purposes only**, and their use does not imply any affiliation or endorsement.
+
+The vendor **MIB files** referenced during the creation of these templates remain the intellectual property of their respective owners and are **subject to the licensing terms of each vendor**. They are **not redistributed** in this repository — only original template code using numeric OIDs is provided. Obtain the MIBs from the official vendor sources if you need them.
+
+This software is provided **"as is"**, without warranty of any kind (see the [License](#license)). Always test in a non‑production environment first. The maintainers are not responsible for any damage, data loss, or service disruption arising from its use.
 
 ## License
 
 Released under the **MIT License** — free to use, modify and redistribute. See [`LICENSE`](./LICENSE) for details.
+
+Copyright (c) 2026 NET365 Srl.
