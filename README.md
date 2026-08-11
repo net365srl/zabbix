@@ -1,5 +1,6 @@
 # Zabbix SNMP Templates for Smart‑Managed Switches
 
+<!-- Static badges (project info) -->
 ![Zabbix](https://img.shields.io/badge/Zabbix-7.4-CC0000?logo=zabbix&logoColor=white)
 ![SNMP](https://img.shields.io/badge/SNMP-v2c%20%7C%20v3-0A66C2)
 ![Format](https://img.shields.io/badge/format-YAML-1A7C11)
@@ -13,8 +14,19 @@
 ![Monitoring](https://img.shields.io/badge/monitoring-SNMP%20polling-9cf)
 ![Discovery](https://img.shields.io/badge/LLD-interfaces-blueviolet)
 ![Dashboard](https://img.shields.io/badge/dashboard-Full%20HD-ff69b4)
-![Contributions](https://img.shields.io/badge/contributions-welcome-8A2BE2)
-![Status](https://img.shields.io/badge/status-stable-brightgreen)
+
+<!-- Dynamic badges (auto-update once published on GitHub).
+     Replace NET365/zabbix-snmp-switch-templates with your actual <owner>/<repo>. -->
+[![Stars](https://img.shields.io/github/stars/NET365/zabbix-snmp-switch-templates?style=social)](https://github.com/NET365/zabbix-snmp-switch-templates/stargazers)
+[![Forks](https://img.shields.io/github/forks/NET365/zabbix-snmp-switch-templates?style=social)](https://github.com/NET365/zabbix-snmp-switch-templates/network/members)
+<br>
+[![License](https://img.shields.io/github/license/NET365/zabbix-snmp-switch-templates)](./LICENSE)
+[![Issues](https://img.shields.io/github/issues/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/commits/main)
+[![Release](https://img.shields.io/github/v/release/NET365/zabbix-snmp-switch-templates?display_name=tag)](https://github.com/NET365/zabbix-snmp-switch-templates/releases)
+[![Repo Size](https://img.shields.io/github/repo-size/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates)
+[![Contributors](https://img.shields.io/github/contributors/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/graphs/contributors)
 
 A collection of **community Zabbix 7.4 templates** to monitor smart‑managed switches over **SNMP**. Each template ships with vendor‑aware items, low‑level discovery (LLD) of network interfaces, ready‑to‑use triggers, per‑interface graphs and a Full‑HD overview dashboard. All OIDs are **numeric**, so no external MIB files need to be loaded into Zabbix.
 
@@ -79,6 +91,12 @@ For **SNMPv3**, switch the host SNMP interface to v3 and fill in the standard se
 ├── README.md                     ← this file
 ├── LICENSE
 ├── CONTRIBUTING.md
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml
+│   │   ├── new_device_request.yml
+│   │   └── config.yml
+│   └── PULL_REQUEST_TEMPLATE.md
 ├── hpe-instanton-1930/
 │   ├── README.md
 │   └── hpe_instanton_1930_snmp_zabbix74.yaml
@@ -113,6 +131,8 @@ Related switch models that share the same firmware/OID layout are often compatib
 Contributions are very welcome — bug fixes, new device families, extra items/triggers, or documentation improvements.
 
 👉 **Please read the full [CONTRIBUTING.md](./CONTRIBUTING.md) before opening an issue or pull request.** It covers reporting bugs, requesting new devices, the PR workflow, template conventions, the validation checklist and privacy/legal notes.
+
+Issue and pull‑request templates are provided under [`.github/`](./.github) to guide you through the required information (model, firmware, Zabbix version, redacted SNMP walk).
 
 In short:
 
