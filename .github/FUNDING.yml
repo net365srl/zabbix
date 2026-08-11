@@ -1,0 +1,19 @@
+# These are supported funding model platforms
+# Uncomment and fill in the ones you actually use, then delete the rest.
+# Docs: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# GitHub Sponsors — one org or up to 4 usernames, e.g. net365srl
+# github: net365srl
+
+# One-time donations
+# ko_fi: your-kofi-username
+# buy_me_a_coffee: your-username
+# liberapay: your-username
+
+# Recurring / collective funding
+# patreon: your-patreon-id
+# open_collective: your-collective
+
+# Custom links — up to 4 (e.g. PayPal, your website donation page).
+# Wrap any URL containing ":" in quotes.
+custom: ["https://www.paypal.me/net365srl"]
