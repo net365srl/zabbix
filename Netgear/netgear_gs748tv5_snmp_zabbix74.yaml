@@ -1,0 +1,837 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+  - uuid: b8ba277882df40e2b0d281567f9de33a
+    name: Templates/Network devices
+  templates:
+  - uuid: f597a823151e45f2bd4dca252ca7155c
+    template: Netgear GS748Tv5 by SNMP
+    name: Netgear GS748Tv5 by SNMP
+    description: 'SNMP monitoring template for Netgear GS748Tv5 (FastPath / Broadcom OS) switches.
+
+      Based on Netgear private MIBs (NETGEAR-REF-MIB, enterprise branch 1.3.6.1.4.1.4526; NETGEAR-SWITCHING-MIB) and the standard IF-MIB and SNMPv2-MIB.
+
+
+      Includes: inventory (model, serial, FW/HW versions), CPU, memory (free/total/util%), ICMP/SNMP availability and interface discovery with traffic, errors, discards and status.
+
+
+      Expected model sysObjectID: 1.3.6.1.4.1.4526.100.4.33 (gs748tv5).
+
+
+      Setup: link to the host, configure an SNMPv2 interface and set the {$SNMP.COMMUNITY} macro.'
+    vendor:
+      name: Community
+      version: 7.4-0
+    groups:
+    - name: Templates/Network devices
+    items:
+    - uuid: 0e56ba61ad964bb2b17868ba44f0f61d
+      name: System description
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.1.0
+      key: system.descr
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysDescr.'
+      preprocessing: &id001
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: system
+    - uuid: cd92e4c317bc4b41bf5ad338be1984b1
+      name: System name
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.5.0
+      key: system.name
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysName.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: 96a9cf9a86cf4f1c8edc9a9c2a20c759
+      name: System location
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.6.0
+      key: system.location
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysLocation.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: a0373f9d5ac54359a33a2e9470382be0
+      name: System contact
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.4.0
+      key: system.contact
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysContact.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: f8971068b08947758cdec28c29137d74
+      name: Uptime (network)
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.3.0
+      key: system.net.uptime
+      delay: 30s
+      history: 7d
+      value_type: FLOAT
+      units: uptime
+      description: 'MIB: SNMPv2-MIB - sysUpTime.'
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      tags:
+      - tag: component
+        value: system
+    - uuid: da763f019de648f993ded459a97c16e9
+      name: Model
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.1.3.0
+      key: netgear.inv.model
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: agentInventoryMachineModel { agentInventoryGroup 3 }.
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: f585b3ee927d479c96d751a069f3fdfc
+      name: Serial number
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.1.4.0
+      key: netgear.inv.serial
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: agentInventorySerialNumber { agentInventoryGroup 4 }.
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: 5676418dc1cb41ddafe5aff8b75b5b82
+      name: Manufacturer
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.1.8.0
+      key: netgear.inv.vendor
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: agentInventoryManufacturer { agentInventoryGroup 8 }.
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: 0b552563411f4619bfcc80a908f0099a
+      name: MAC address (burned-in)
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.1.9.0
+      key: netgear.inv.mac
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: agentInventoryBurnedInMacAddress { agentInventoryGroup 9 }.
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: 5fe2e63084444cb4a464a302c46c097a
+      name: Operating system
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.1.10.0
+      key: netgear.inv.os
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: agentInventoryOperatingSystem { agentInventoryGroup 10 }.
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: ad254c633401423ead6837083e79306d
+      name: Software (firmware) version
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.1.13.0
+      key: netgear.inv.swver
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: agentInventorySoftwareVersion { agentInventoryGroup 13 }.
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: fef626c3a6364d31ae929be4a57bc81c
+      name: Hardware version
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.1.14.0
+      key: netgear.inv.hwver
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: agentInventoryHardwareVersion { agentInventoryGroup 14 }.
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: 1f11de1ba0c04eb6923129d10c8c72f2
+      name: CPU utilization
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.4.9.0
+      key: system.cpu.util
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: 'agentSwitchCpuProcessTotalUtilization { agentSwitchCpuProcessGroup 9 }. String with 5/60/300s values: the 60s value is extracted via regex.'
+      preprocessing:
+      - type: REGEX
+        parameters:
+        - 60 Secs\s*\(\s*([0-9.]+)\s*%
+        - \1
+      tags:
+      - tag: component
+        value: cpu
+    - uuid: 9c1907e136b942da9a19a4eb6d8f8ca7
+      name: Memory available (total)
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.4.2.0
+      key: vm.memory.total
+      delay: 1m
+      history: 7d
+      value_type: UNSIGNED
+      units: B
+      description: agentSwitchCpuProcessMemAvailable { agentSwitchCpuProcessGroup 2 }. KBytes -> Bytes.
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: memory
+    - uuid: 3c6c8d013d9647fc98c79e785eb92392
+      name: Memory free
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.4526.11.1.1.4.1.0
+      key: vm.memory.free
+      delay: 1m
+      history: 7d
+      value_type: UNSIGNED
+      units: B
+      description: agentSwitchCpuProcessMemFree { agentSwitchCpuProcessGroup 1 }. KBytes -> Bytes.
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '1024'
+      tags:
+      - tag: component
+        value: memory
+    - uuid: cdb2b4673aad4b32b9b3661ae870a661
+      name: Memory utilization
+      type: CALCULATED
+      key: vm.memory.util
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      params: 100*(last(//vm.memory.total)-last(//vm.memory.free))/(last(//vm.memory.total)+(last(//vm.memory.total)=0))
+      description: Memory utilization percentage computed from total and free.
+      tags:
+      - tag: component
+        value: memory
+    - uuid: 454c61522ea44f94b9322bfcca3680f8
+      name: Total incoming throughput
+      type: CALCULATED
+      key: net.if.total.in
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      params: sum(last_foreach(/Netgear GS748Tv5 by SNMP/net.if.in[*]))
+      description: Sum of incoming traffic across all discovered interfaces.
+      tags:
+      - tag: component
+        value: network
+    - uuid: ff5e92b3c0ed4a7db707d6c9efda9435
+      name: Total outgoing throughput
+      type: CALCULATED
+      key: net.if.total.out
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      params: sum(last_foreach(/Netgear GS748Tv5 by SNMP/net.if.out[*]))
+      description: Sum of outgoing traffic across all discovered interfaces.
+      tags:
+      - tag: component
+        value: network
+    - uuid: 5af8a9f3305046529a004e2d948b0767
+      name: ICMP ping
+      type: SIMPLE
+      key: icmpping
+      delay: 30s
+      history: 7d
+      value_type: UNSIGNED
+      valuemap:
+        name: ICMP ping status
+      description: ICMP reachability.
+      tags:
+      - tag: component
+        value: network
+    - uuid: 240c19f0acdf468d81cb283e62aa53e7
+      name: ICMP loss
+      type: SIMPLE
+      key: icmppingloss
+      delay: 30s
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: ICMP packet loss percentage.
+      tags:
+      - tag: component
+        value: network
+    - uuid: efa83b041c0142a2972002763ab40144
+      name: ICMP response time
+      type: SIMPLE
+      key: icmppingsec
+      delay: 30s
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: ICMP response time.
+      tags:
+      - tag: component
+        value: network
+    - uuid: 8fff0344521b471c889bb4647f3067ae
+      name: SNMP agent availability
+      type: INTERNAL
+      key: zabbix[host,snmp,available]
+      delay: 1m
+      history: 7d
+      value_type: UNSIGNED
+      valuemap:
+        name: zabbix.host.available
+      description: Availability of the host's SNMP agent.
+      tags:
+      - tag: component
+        value: network
+    discovery_rules:
+    - uuid: 74a7be4b01b04fb88eedfed67b85c6aa
+      name: Network interfaces discovery
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#IFOPERSTATUS},1.3.6.1.2.1.2.2.1.8,{#IFADMINSTATUS},1.3.6.1.2.1.2.2.1.7,{#IFDESCR},1.3.6.1.2.1.2.2.1.2,{#IFALIAS},1.3.6.1.2.1.31.1.1.1.18,{#IFNAME},1.3.6.1.2.1.31.1.1.1.1,{#IFTYPE},1.3.6.1.2.1.2.2.1.3]
+      key: net.if.discovery
+      delay: 1h
+      filter:
+        evaltype: AND
+        conditions:
+        - macro: '{#IFADMINSTATUS}'
+          value: '{$IF.ADMINSTATUS.MATCHES}'
+          formulaid: A
+        - macro: '{#IFTYPE}'
+          value: '{$IF.TYPE.MATCHES}'
+          formulaid: B
+        - macro: '{#IFNAME}'
+          value: '{$NET.IF.IFNAME.NOT_MATCHES}'
+          operator: NOT_MATCHES_REGEX
+          formulaid: C
+      description: Discovery of network interfaces via IF-MIB (ifTable/ifXTable).
+      item_prototypes:
+      - uuid: 91ef6f3b3d994ef9b448efb289e1c3ee
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Bits received'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}
+        key: net.if.in[ifHCInOctets.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        units: bps
+        description: IF-MIB - ifHCInOctets.
+        preprocessing: &id002
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: d5e474afe0eb4570ab1706352a3727f3
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Bits sent'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}
+        key: net.if.out[ifHCOutOctets.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        units: bps
+        description: IF-MIB - ifHCOutOctets.
+        preprocessing: *id002
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 8556f3f43b1f4675ba9d5791786959d0
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Inbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}
+        key: net.if.in.errors[ifInErrors.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifInErrors.
+        preprocessing: &id003
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 0cb66eb71bbf4957bb535803e0a8e94b
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Outbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}
+        key: net.if.out.errors[ifOutErrors.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifOutErrors.
+        preprocessing: *id003
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 176545fa6f394ef4aa3cbcd70da81d98
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Inbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}
+        key: net.if.in.discards[ifInDiscards.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifInDiscards.
+        preprocessing: *id003
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: b6228329d0ec4cfebf222eb7731e9e6c
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Outbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}
+        key: net.if.out.discards[ifOutDiscards.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifOutDiscards.
+        preprocessing: *id003
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: a1b2b32a8ef848ad87ad8d740a1237c8
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Operational status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}
+        key: net.if.status[ifOperStatus.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: UNSIGNED
+        description: IF-MIB - ifOperStatus.
+        preprocessing: &id004
+        - type: DISCARD_UNCHANGED_HEARTBEAT
+          parameters:
+          - 1h
+        valuemap:
+          name: IF-MIB::ifOperStatus
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 9d7e4cfbe20f450b8a8f9b84ebf2c956
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Admin status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.7.{#SNMPINDEX}
+        key: net.if.adminstatus[ifAdminStatus.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: UNSIGNED
+        description: IF-MIB - ifAdminStatus.
+        preprocessing: *id004
+        valuemap:
+          name: IF-MIB::ifAdminStatus
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: c054aa7fa12740e5baacfa5ad99eeddb
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Speed'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.15.{#SNMPINDEX}
+        key: net.if.speed[ifHighSpeed.{#SNMPINDEX}]
+        delay: 5m
+        history: 7d
+        value_type: UNSIGNED
+        units: bps
+        description: IF-MIB - ifHighSpeed (Mbit/s -> bps).
+        preprocessing:
+        - type: MULTIPLIER
+          parameters:
+          - '1000000'
+        - type: DISCARD_UNCHANGED_HEARTBEAT
+          parameters:
+          - 1h
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      trigger_prototypes:
+      - uuid: 202a414483664716bc7bd262765ba3fc
+        expression: '{$IFCONTROL}=1 and last(/Netgear GS748Tv5 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)=2 and last(/Netgear GS748Tv5 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}],#2)=1 and last(/Netgear GS748Tv5 by SNMP/net.if.adminstatus[ifAdminStatus.{#SNMPINDEX}])=1'
+        recovery_mode: RECOVERY_EXPRESSION
+        recovery_expression: last(/Netgear GS748Tv5 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Link down'
+        priority: INFO
+        description: The port has TRANSITIONED from up to down (edge event). It does not fire for ports left permanently down; it resolves when the port comes back up.
+        manual_close: 'YES'
+        tags:
+        - tag: scope
+          value: availability
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: d8970ab4b2d14396a3f78b270f2b6683
+        expression: (avg(/Netgear GS748Tv5 by SNMP/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX}/100)*last(/Netgear GS748Tv5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) or avg(/Netgear GS748Tv5 by SNMP/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX}/100)*last(/Netgear GS748Tv5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])) and last(/Netgear GS748Tv5 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: High bandwidth utilization'
+        priority: WARNING
+        description: Bandwidth utilization above {$IF.UTIL.MAX}% for 15 minutes.
+        manual_close: 'YES'
+        tags:
+        - tag: scope
+          value: performance
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 1e9d1300bce240c483b696352a40bea2
+        expression: min(/Netgear GS748Tv5 by SNMP/net.if.in.errors[ifInErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN} or min(/Netgear GS748Tv5 by SNMP/net.if.out.errors[ifOutErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN}
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: High error rate'
+        priority: WARNING
+        description: Inbound/outbound error rate above threshold.
+        manual_close: 'YES'
+        tags:
+        - tag: scope
+          value: performance
+        - tag: interface
+          value: '{#IFNAME}'
+      graph_prototypes:
+      - uuid: 60c4321c830f4ccab09f8cb3f1a9a5b9
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Traffic'
+        ymin_type_1: FIXED
+        graph_items:
+        - drawtype: GRADIENT_LINE
+          color: 1A7C11
+          item:
+            host: Netgear GS748Tv5 by SNMP
+            key: net.if.in[ifHCInOctets.{#SNMPINDEX}]
+        - sortorder: '1'
+          drawtype: GRADIENT_LINE
+          color: 2774A4
+          item:
+            host: Netgear GS748Tv5 by SNMP
+            key: net.if.out[ifHCOutOctets.{#SNMPINDEX}]
+    dashboards:
+    - uuid: bd9f7db03ec7473dab3993ec07baed79
+      name: Netgear GS748Tv5 - Overview
+      pages:
+      - name: Overview
+        widgets:
+        - type: svggraph
+          name: Total switch throughput (in/out)
+          x: '0'
+          'y': '0'
+          width: '48'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.0.items.0
+            value: Total incoming throughput
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.1.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.1.items.0
+            value: Total outgoing throughput
+          - type: STRING
+            name: ds.1.color
+            value: 2774A4
+          - type: INTEGER
+            name: legend
+            value: '1'
+        - type: item
+          name: CPU utilization
+          x: '48'
+          'y': '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Netgear GS748Tv5 by SNMP
+              key: system.cpu.util
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: item
+          name: Memory utilization
+          x: '60'
+          'y': '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Netgear GS748Tv5 by SNMP
+              key: vm.memory.util
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: item
+          name: Uptime
+          x: '48'
+          'y': '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Netgear GS748Tv5 by SNMP
+              key: system.net.uptime
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: item
+          name: ICMP ping
+          x: '60'
+          'y': '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Netgear GS748Tv5 by SNMP
+              key: icmpping
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: problems
+          name: Active problems
+          x: '0'
+          'y': '6'
+          width: '48'
+          height: '6'
+        - type: svggraph
+          name: Per-interface traffic (all)
+          x: '48'
+          'y': '6'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Interface *: Bits received'
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.1.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Interface *: Bits sent'
+          - type: STRING
+            name: ds.1.color
+            value: 2774A4
+          - type: INTEGER
+            name: legend
+            value: '1'
+    macros:
+    - macro: '{$SNMP.COMMUNITY}'
+      value: public
+      description: SNMP v2c community.
+    - macro: '{$SNMP.TIMEOUT}'
+      value: 5m
+      description: Window for the SNMP unavailability trigger.
+    - macro: '{$CPU.UTIL.CRIT}'
+      value: '90'
+      description: Critical CPU utilization threshold (%).
+    - macro: '{$MEMORY.UTIL.MAX}'
+      value: '90'
+      description: Critical memory utilization threshold (%).
+    - macro: '{$ICMP.LOSS.WARN}'
+      value: '20'
+      description: Warning ICMP packet loss threshold (%).
+    - macro: '{$IFCONTROL}'
+      value: '1'
+      description: Enable/disable the Link down trigger (1=on, 0=off).
+    - macro: '{$IF.UTIL.MAX}'
+      value: '90'
+      description: Interface bandwidth utilization threshold (%).
+    - macro: '{$IF.ERRORS.WARN}'
+      value: '2'
+      description: Warning interface error threshold (packets/sec).
+    - macro: '{$IF.ADMINSTATUS.MATCHES}'
+      value: ^1$
+      description: Discover only interfaces with admin status = up.
+    - macro: '{$IF.TYPE.MATCHES}'
+      value: ^6$
+      description: Discover only ethernetCsmacd interfaces (ifType=6).
+    - macro: '{$NET.IF.IFNAME.NOT_MATCHES}'
+      value: (^$)
+      description: Regex to exclude interfaces from discovery.
+    valuemaps:
+    - uuid: 9506560327774c89accbd23a241092d6
+      name: IF-MIB::ifOperStatus
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: notPresent
+      - value: '7'
+        newvalue: lowerLayerDown
+    - uuid: ef020f86f2b54d73b87620a8f3c1fd12
+      name: IF-MIB::ifAdminStatus
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+    - uuid: e5f717cc49a04abeb8f0c8ab888bb2c0
+      name: ICMP ping status
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+    - uuid: cbd4197954504fab81b2edad6f69b31c
+      name: zabbix.host.available
+      mappings:
+      - value: '0'
+        newvalue: not available
+      - value: '1'
+        newvalue: available
+      - value: '2'
+        newvalue: unknown
+  triggers:
+  - uuid: 0351712eeb40416fab9a706b92691153
+    expression: max(/Netgear GS748Tv5 by SNMP/icmpping,#3)=0
+    name: Unavailable by ICMP ping
+    priority: HIGH
+    description: The switch is not responding to ICMP requests.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: availability
+  - uuid: d9e043ea64394e1b9db9488e13df518e
+    expression: max(/Netgear GS748Tv5 by SNMP/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0
+    name: No SNMP data collection
+    priority: WARNING
+    description: SNMP agent is not responding. Check community, SNMP ACLs and connectivity.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: availability
+    dependencies:
+    - name: Unavailable by ICMP ping
+      expression: max(/Netgear GS748Tv5 by SNMP/icmpping,#3)=0
+  - uuid: 5f3bac29ae27408a8ffda3cffda938aa
+    expression: min(/Netgear GS748Tv5 by SNMP/icmppingloss,5m)>{$ICMP.LOSS.WARN} and min(/Netgear GS748Tv5 by SNMP/icmppingloss,5m)<100
+    name: High ICMP ping loss
+    priority: WARNING
+    description: ICMP packet loss above threshold.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: performance
+  - uuid: 121b152763b64a1787dd8daba08ffe91
+    expression: last(/Netgear GS748Tv5 by SNMP/system.net.uptime)<10m
+    name: Device has been restarted
+    priority: INFO
+    description: 'Uptime below 10 minutes: the switch has been restarted.'
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: notice
+  - uuid: 0ece5baaa2bc4ec787382ecacd45b1d0
+    expression: min(/Netgear GS748Tv5 by SNMP/system.cpu.util,5m)>{$CPU.UTIL.CRIT}
+    name: High CPU utilization
+    priority: WARNING
+    description: CPU utilization above {$CPU.UTIL.CRIT}% for 5 minutes.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: performance
+  - uuid: 9b7d2b59a9904276a4174f48a03a7378
+    expression: min(/Netgear GS748Tv5 by SNMP/vm.memory.util,5m)>{$MEMORY.UTIL.MAX}
+    name: High memory utilization
+    priority: AVERAGE
+    description: Memory utilization above {$MEMORY.UTIL.MAX}% for 5 minutes.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: performance
+  - uuid: 8a1f9c5b900c40d7adafcb531c648e01
+    expression: last(/Netgear GS748Tv5 by SNMP/netgear.inv.swver,#1)<>last(/Netgear GS748Tv5 by SNMP/netgear.inv.swver,#2) and length(last(/Netgear GS748Tv5 by SNMP/netgear.inv.swver))>0
+    name: Firmware version has changed
+    priority: INFO
+    description: Firmware version changed.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: notice
