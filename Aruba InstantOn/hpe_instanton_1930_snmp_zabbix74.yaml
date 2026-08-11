@@ -1,0 +1,780 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+  - uuid: 2f72449b560b4a35afaffd704e09814b
+    name: Templates/Network devices
+  templates:
+  - uuid: aa0bb74efc0f4cbda5433945aa3ba4c8
+    template: HPE Instant On 1930 by SNMP
+    name: HPE Instant On 1930 by SNMP
+    description: 'SNMP monitoring template for HPE Networking / Aruba Instant On 1930 switches.
+
+      Based on HPE private MIBs (enterprise branch 1.3.6.1.4.1.11.2) and the standard IF-MIB and SNMPv2-MIB.
+
+
+      Setup: link to the host, configure an SNMPv2 interface and set the {$SNMP.COMMUNITY} macro.
+
+
+      NOTE: on the Instant On 1930 series the ''Smart Managed'' firmware does NOT expose memory/RAM OIDs (flash partitions only), so RAM monitoring is not included. CPU and interfaces are supported.'
+    vendor:
+      name: Community
+      version: 7.4-0
+    groups:
+    - name: Templates/Network devices
+    items:
+    - uuid: 38a1b35efb5b435180067f1e2237e542
+      name: System description
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.1.0
+      key: system.descr
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysDescr.'
+      preprocessing: &id001
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1d
+      tags:
+      - tag: component
+        value: system
+    - uuid: 714f15a3590249deae3ab17e37729496
+      name: System name
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.5.0
+      key: system.name
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysName.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: 1894db858d0c41d38718a3cbfd649b78
+      name: System location
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.6.0
+      key: system.location
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysLocation.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: b15923c6042243fa9457a18ff309b2a6
+      name: System contact
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.4.0
+      key: system.contact
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysContact.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: 92a63dfc7ee94b138b83104e56e07a7b
+      name: System object ID
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.2.0
+      key: system.objectid
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: SNMPv2-MIB - sysObjectID.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: 375ca8d68c2e4afeb78f1ff5fb165f54
+      name: Uptime (network)
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.3.0
+      key: system.net.uptime
+      delay: 30s
+      history: 7d
+      value_type: FLOAT
+      units: uptime
+      description: 'MIB: SNMPv2-MIB - sysUpTime.'
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      tags:
+      - tag: component
+        value: system
+    - uuid: f62b47696ddb4471a3417b32488f5404
+      name: CPU utilization
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.1.8.0
+      key: system.cpu.util
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: 'HPE enterprise OID (nm branch 1.3.6.1.4.1.11.2.1): average CPU utilization.'
+      tags:
+      - tag: component
+        value: cpu
+    - uuid: c9491a12c52e4bdcb1e56b4c3621fbe5
+      name: CPU utilization (last second)
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.1.7.0
+      key: system.cpu.util.last
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: 'HPE enterprise OID (nm branch 1.3.6.1.4.1.11.2.1): CPU utilization over last second.'
+      tags:
+      - tag: component
+        value: cpu
+    - uuid: 4f45bf10b58c4ba2a3bd44905b213277
+      name: Hardware health status
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.2.11.3.0
+      key: system.hw.status
+      delay: 5m
+      history: 7d
+      value_type: UNSIGNED
+      description: 'MIB: HPE-DEVICEPARAMS-MIB - genGroupHWStatus { genGroup 3 }: ok(1), hardwareProblems(2), notSupported(255).'
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 1h
+      valuemap:
+        name: HPE hardware status
+      tags:
+      - tag: component
+        value: health
+    - uuid: 9a17e5cd2d4d4c0b909899214e970afb
+      name: Boot version
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.2.10.0
+      key: system.boot.version
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: HPE-DEVICEPARAMS-MIB - rndBaseBootVersion { rndDeviceParams 10 }.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: 3772b1e5d5624ef6a663cda93f8f1625
+      name: Hardware version
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.2.11.1.0
+      key: system.hw.version
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: HPE-DEVICEPARAMS-MIB - genGroupHWVersion { genGroup 1 }.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: 5ea750656e8346eeb013a6fcfeef5227
+      name: Base MAC address
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.2.12.0
+      key: system.hw.mac
+      delay: 1h
+      history: '0'
+      value_type: CHAR
+      description: 'MIB: HPE-DEVICEPARAMS-MIB - rndBasePhysicalAddress { rndDeviceParams 12 }.'
+      preprocessing: *id001
+      tags:
+      - tag: component
+        value: system
+    - uuid: e2873b0ff5c2443a91b615b0e39bd093
+      name: Total incoming throughput
+      type: CALCULATED
+      key: net.if.total.in
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      params: sum(last_foreach(/HPE Instant On 1930 by SNMP/net.if.in[*]))
+      description: Sum of incoming traffic across all discovered interfaces.
+      tags:
+      - tag: component
+        value: network
+    - uuid: 2e4d51007a5b48019dd530c54534289c
+      name: Total outgoing throughput
+      type: CALCULATED
+      key: net.if.total.out
+      delay: 1m
+      history: 7d
+      value_type: FLOAT
+      units: bps
+      params: sum(last_foreach(/HPE Instant On 1930 by SNMP/net.if.out[*]))
+      description: Sum of outgoing traffic across all discovered interfaces.
+      tags:
+      - tag: component
+        value: network
+    - uuid: ae0697021e864f87b29d4137a49e361c
+      name: ICMP ping
+      type: SIMPLE
+      key: icmpping
+      delay: 30s
+      history: 7d
+      value_type: UNSIGNED
+      valuemap:
+        name: ICMP ping status
+      description: ICMP reachability.
+      tags:
+      - tag: component
+        value: network
+    - uuid: 3fdf421daa1147c2a1742c7be0e9c96d
+      name: ICMP loss
+      type: SIMPLE
+      key: icmppingloss
+      delay: 30s
+      history: 7d
+      value_type: FLOAT
+      units: '%'
+      description: ICMP packet loss percentage.
+      tags:
+      - tag: component
+        value: network
+    - uuid: a4de8cd0055e4582b6869e58347aaf6a
+      name: ICMP response time
+      type: SIMPLE
+      key: icmppingsec
+      delay: 30s
+      history: 7d
+      value_type: FLOAT
+      units: s
+      description: ICMP response time.
+      tags:
+      - tag: component
+        value: network
+    - uuid: ef8e031117714f848f11261d923ba2bf
+      name: SNMP agent availability
+      type: INTERNAL
+      key: zabbix[host,snmp,available]
+      delay: 1m
+      history: 7d
+      value_type: UNSIGNED
+      valuemap:
+        name: zabbix.host.available
+      description: Availability of the host's SNMP agent.
+      tags:
+      - tag: component
+        value: network
+    discovery_rules:
+    - uuid: bba877abf5fa44329237c3fd925ae594
+      name: Network interfaces discovery
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#IFOPERSTATUS},1.3.6.1.2.1.2.2.1.8,{#IFADMINSTATUS},1.3.6.1.2.1.2.2.1.7,{#IFDESCR},1.3.6.1.2.1.2.2.1.2,{#IFALIAS},1.3.6.1.2.1.31.1.1.1.18,{#IFNAME},1.3.6.1.2.1.31.1.1.1.1,{#IFTYPE},1.3.6.1.2.1.2.2.1.3]
+      key: net.if.discovery
+      delay: 1h
+      filter:
+        evaltype: AND
+        conditions:
+        - macro: '{#IFADMINSTATUS}'
+          value: '{$IF.ADMINSTATUS.MATCHES}'
+          formulaid: A
+        - macro: '{#IFTYPE}'
+          value: '{$IF.TYPE.MATCHES}'
+          formulaid: B
+        - macro: '{#IFNAME}'
+          value: '{$NET.IF.IFNAME.NOT_MATCHES}'
+          operator: NOT_MATCHES_REGEX
+          formulaid: C
+      description: Discovery of network interfaces via IF-MIB (ifTable/ifXTable).
+      item_prototypes:
+      - uuid: 8ab4498f2f8342cc90bca12028c1f00d
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Bits received'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}
+        key: net.if.in[ifHCInOctets.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        units: bps
+        description: IF-MIB - ifHCInOctets.
+        preprocessing: &id002
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 08b4e35d1fcc4586896852e0a02d20f6
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Bits sent'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}
+        key: net.if.out[ifHCOutOctets.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        units: bps
+        description: IF-MIB - ifHCOutOctets.
+        preprocessing: *id002
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: ca2b654fc1494052b71eb4dfa3611521
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Inbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}
+        key: net.if.in.errors[ifInErrors.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifInErrors.
+        preprocessing: &id003
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: f2dda5e8771e4b508f8c8f0b377555cd
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Outbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}
+        key: net.if.out.errors[ifOutErrors.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifOutErrors.
+        preprocessing: *id003
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: e6b47c9c97644b2688d848add4891307
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Inbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}
+        key: net.if.in.discards[ifInDiscards.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifInDiscards.
+        preprocessing: *id003
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: ba20bb72e5b1418b9ed6e1c44eff2b44
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Outbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}
+        key: net.if.out.discards[ifOutDiscards.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: FLOAT
+        description: IF-MIB - ifOutDiscards.
+        preprocessing: *id003
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: d89e73e62a9c4009a27b64191d11ffcb
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Operational status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}
+        key: net.if.status[ifOperStatus.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: UNSIGNED
+        description: IF-MIB - ifOperStatus.
+        preprocessing: &id004
+        - type: DISCARD_UNCHANGED_HEARTBEAT
+          parameters:
+          - 1h
+        valuemap:
+          name: IF-MIB::ifOperStatus
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 418c23c1d2f043c2a21fca743a65c2d0
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Admin status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.7.{#SNMPINDEX}
+        key: net.if.adminstatus[ifAdminStatus.{#SNMPINDEX}]
+        delay: 60s
+        history: 7d
+        value_type: UNSIGNED
+        description: IF-MIB - ifAdminStatus.
+        preprocessing: *id004
+        valuemap:
+          name: IF-MIB::ifAdminStatus
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 10e98451dcd542c4898fe62c7014082b
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Speed'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.15.{#SNMPINDEX}
+        key: net.if.speed[ifHighSpeed.{#SNMPINDEX}]
+        delay: 5m
+        history: 7d
+        value_type: UNSIGNED
+        units: bps
+        description: IF-MIB - ifHighSpeed (Mbit/s -> bps).
+        preprocessing:
+        - type: MULTIPLIER
+          parameters:
+          - '1000000'
+        - type: DISCARD_UNCHANGED_HEARTBEAT
+          parameters:
+          - 1h
+        tags:
+        - tag: component
+          value: network
+        - tag: interface
+          value: '{#IFNAME}'
+      trigger_prototypes:
+      - uuid: 61d24bcd26564b7a98d0eeab70af1b52
+        expression: '{$IFCONTROL}=1 and last(/HPE Instant On 1930 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)=2 and last(/HPE Instant On 1930 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}],#2)=1 and last(/HPE Instant On 1930 by SNMP/net.if.adminstatus[ifAdminStatus.{#SNMPINDEX}])=1'
+        recovery_mode: RECOVERY_EXPRESSION
+        recovery_expression: last(/HPE Instant On 1930 by SNMP/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Link down'
+        priority: HIGH
+        description: The port has TRANSITIONED from up to down (edge event). It does not fire for ports left permanently down; it resolves when the port comes back up.
+        manual_close: 'YES'
+        tags:
+        - tag: scope
+          value: availability
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: cc76c589c2334163bcc7ffe9990099b4
+        expression: (avg(/HPE Instant On 1930 by SNMP/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX}/100)*last(/HPE Instant On 1930 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) or avg(/HPE Instant On 1930 by SNMP/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX}/100)*last(/HPE Instant On 1930 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])) and last(/HPE Instant On 1930 by SNMP/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: High bandwidth utilization'
+        priority: WARNING
+        description: Bandwidth utilization above {$IF.UTIL.MAX}% for 15 minutes.
+        manual_close: 'YES'
+        tags:
+        - tag: scope
+          value: performance
+        - tag: interface
+          value: '{#IFNAME}'
+      - uuid: 6c2d2245c6094fe1b8902953a2120702
+        expression: min(/HPE Instant On 1930 by SNMP/net.if.in.errors[ifInErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN} or min(/HPE Instant On 1930 by SNMP/net.if.out.errors[ifOutErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN}
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: High error rate'
+        priority: WARNING
+        description: Inbound/outbound error rate above threshold.
+        manual_close: 'YES'
+        tags:
+        - tag: scope
+          value: performance
+        - tag: interface
+          value: '{#IFNAME}'
+      graph_prototypes:
+      - uuid: 4d083348d7ac407d8e4cc57113d45b7b
+        name: 'Interface [{#IFNAME}({#IFALIAS})]: Traffic'
+        ymin_type_1: FIXED
+        graph_items:
+        - drawtype: GRADIENT_LINE
+          color: 1A7C11
+          item:
+            host: HPE Instant On 1930 by SNMP
+            key: net.if.in[ifHCInOctets.{#SNMPINDEX}]
+        - sortorder: '1'
+          drawtype: GRADIENT_LINE
+          color: 2774A4
+          item:
+            host: HPE Instant On 1930 by SNMP
+            key: net.if.out[ifHCOutOctets.{#SNMPINDEX}]
+    dashboards:
+    - uuid: 34264c9273744d8b9d94b7d5b93cc492
+      name: HPE Instant On 1930 - Overview
+      pages:
+      - name: Overview
+        widgets:
+        - type: svggraph
+          name: Total switch throughput (in/out)
+          x: '0'
+          'y': '0'
+          width: '48'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.0.items.0
+            value: Total incoming throughput
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.1.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.1.items.0
+            value: Total outgoing throughput
+          - type: STRING
+            name: ds.1.color
+            value: 2774A4
+          - type: INTEGER
+            name: legend
+            value: '1'
+        - type: item
+          name: CPU utilization
+          x: '48'
+          'y': '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: HPE Instant On 1930 by SNMP
+              key: system.cpu.util
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: item
+          name: Uptime
+          x: '60'
+          'y': '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: HPE Instant On 1930 by SNMP
+              key: system.net.uptime
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: item
+          name: Hardware health
+          x: '48'
+          'y': '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: HPE Instant On 1930 by SNMP
+              key: system.hw.status
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: item
+          name: ICMP ping
+          x: '60'
+          'y': '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: HPE Instant On 1930 by SNMP
+              key: icmpping
+          - type: INTEGER
+            name: show
+            value: '2'
+        - type: problems
+          name: Active problems
+          x: '0'
+          'y': '6'
+          width: '48'
+          height: '6'
+        - type: svggraph
+          name: Per-interface traffic (all)
+          x: '48'
+          'y': '6'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Interface *: Bits received'
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.1.hosts.0
+            value: '{HOST.HOST}'
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Interface *: Bits sent'
+          - type: STRING
+            name: ds.1.color
+            value: 2774A4
+          - type: INTEGER
+            name: legend
+            value: '1'
+    macros:
+    - macro: '{$SNMP.COMMUNITY}'
+      value: public
+      description: SNMP v2c community.
+    - macro: '{$SNMP.TIMEOUT}'
+      value: 5m
+      description: Window for the SNMP unavailability trigger.
+    - macro: '{$CPU.UTIL.CRIT}'
+      value: '90'
+      description: Critical CPU utilization threshold (%).
+    - macro: '{$ICMP.LOSS.WARN}'
+      value: '20'
+      description: Warning ICMP packet loss threshold (%).
+    - macro: '{$IFCONTROL}'
+      value: '1'
+      description: Enable/disable the Link down trigger (1=on, 0=off).
+    - macro: '{$IF.UTIL.MAX}'
+      value: '90'
+      description: Interface bandwidth utilization threshold (%).
+    - macro: '{$IF.ERRORS.WARN}'
+      value: '2'
+      description: Warning interface error threshold (packets/sec).
+    - macro: '{$IF.ADMINSTATUS.MATCHES}'
+      value: ^1$
+      description: Discover only interfaces with admin status = up.
+    - macro: '{$IF.TYPE.MATCHES}'
+      value: ^6$
+      description: Discover only ethernetCsmacd interfaces (ifType=6).
+    - macro: '{$NET.IF.IFNAME.NOT_MATCHES}'
+      value: (^$)
+      description: Regex to exclude interfaces from discovery.
+    valuemaps:
+    - uuid: ee4311a36d674e6eb43b759d1640a083
+      name: IF-MIB::ifOperStatus
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: notPresent
+      - value: '7'
+        newvalue: lowerLayerDown
+    - uuid: 970259a33ccc45d98a55407435965f8e
+      name: IF-MIB::ifAdminStatus
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+    - uuid: 0c2bd2b501534a989a2746df485357ea
+      name: HPE hardware status
+      mappings:
+      - value: '1'
+        newvalue: ok
+      - value: '2'
+        newvalue: hardwareProblems
+      - value: '255'
+        newvalue: notSupported
+    - uuid: 23cd239257ca4ba8b978f2d7c7b55ca2
+      name: ICMP ping status
+      mappings:
+      - value: '0'
+        newvalue: Down
+      - value: '1'
+        newvalue: Up
+    - uuid: 9b5da7216b85419291923a218624a3f8
+      name: zabbix.host.available
+      mappings:
+      - value: '0'
+        newvalue: not available
+      - value: '1'
+        newvalue: available
+      - value: '2'
+        newvalue: unknown
+  triggers:
+  - uuid: 490183f33c8f4af28df57a489d94f88d
+    expression: max(/HPE Instant On 1930 by SNMP/icmpping,#3)=0
+    name: Unavailable by ICMP ping
+    priority: HIGH
+    description: The switch is not responding to ICMP requests.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: availability
+  - uuid: ba6c9f480b35497ab15b556042a64f2e
+    expression: max(/HPE Instant On 1930 by SNMP/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0
+    name: No SNMP data collection
+    priority: WARNING
+    description: SNMP agent is not responding. Check community, SNMP ACLs and connectivity.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: availability
+    dependencies:
+    - name: Unavailable by ICMP ping
+      expression: max(/HPE Instant On 1930 by SNMP/icmpping,#3)=0
+  - uuid: 881f311cc62046c691666be30437d4cf
+    expression: min(/HPE Instant On 1930 by SNMP/icmppingloss,5m)>{$ICMP.LOSS.WARN} and min(/HPE Instant On 1930 by SNMP/icmppingloss,5m)<100
+    name: High ICMP ping loss
+    priority: WARNING
+    description: ICMP packet loss above threshold.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: performance
+  - uuid: 89e2962154a846b99a4931f86b52406b
+    expression: last(/HPE Instant On 1930 by SNMP/system.net.uptime)<10m
+    name: Device has been restarted
+    priority: INFO
+    description: 'Uptime below 10 minutes: the switch has been restarted.'
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: notice
+  - uuid: ec3e9313622c46c78b441a3c146da084
+    expression: min(/HPE Instant On 1930 by SNMP/system.cpu.util,5m)>{$CPU.UTIL.CRIT}
+    name: High CPU utilization
+    priority: WARNING
+    description: CPU utilization above {$CPU.UTIL.CRIT}% for 5 minutes.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: performance
+  - uuid: 112e1c112f8446909654ead8a0b0a562
+    expression: last(/HPE Instant On 1930 by SNMP/system.hw.status)=2
+    name: Hardware health is in problem state
+    priority: HIGH
+    description: genGroupHWStatus reports hardwareProblems(2).
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: availability
+  - uuid: e048fcc1c2a84fafb09343d3dcba3e7e
+    expression: last(/HPE Instant On 1930 by SNMP/system.boot.version,#1)<>last(/HPE Instant On 1930 by SNMP/system.boot.version,#2) and length(last(/HPE Instant On 1930 by SNMP/system.boot.version))>0
+    name: Firmware/boot version has changed
+    priority: INFO
+    description: Firmware/boot version changed.
+    manual_close: 'YES'
+    tags:
+    - tag: scope
+      value: notice
