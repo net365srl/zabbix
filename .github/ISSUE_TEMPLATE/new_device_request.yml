@@ -1,0 +1,91 @@
+name: "🌐 New device request"
+description: "Request support for a switch model not yet covered."
+title: "[Device] <vendor> <model>"
+labels: ["enhancement", "new-device"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adding a new switch family is one of the most valuable contributions.
+        The more SNMP detail you provide, the faster a template can be drafted.
+        Please **redact** community strings, IP addresses and serial numbers.
+
+  - type: input
+    id: vendor
+    attributes:
+      label: Vendor
+      placeholder: "e.g. Aruba / HPE / Netgear / Cisco"
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      placeholder: "e.g. Aruba 2930F 24G"
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware / OS and version
+      placeholder: "e.g. ArubaOS-Switch 16.10"
+    validations:
+      required: true
+
+  - type: input
+    id: sysobjectid
+    attributes:
+      label: sysObjectID
+      description: Output of an SNMP get on 1.3.6.1.2.1.1.2.0
+      placeholder: "e.g. 1.3.6.1.4.1.11.2.3.7.11.x"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sysdescr
+    attributes:
+      label: sysDescr
+      description: Output of an SNMP get on 1.3.6.1.2.1.1.1.0
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: enterprise_walk
+    attributes:
+      label: Enterprise branch SNMP walk (redacted)
+      description: Walk of the vendor enterprise branch (CPU, memory, inventory, sensors) if available.
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: ifmib
+    attributes:
+      label: Does it expose the standard IF-MIB (ifTable/ifXTable)?
+      options:
+        - "Yes"
+        - "No"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics you would like to monitor
+      placeholder: "e.g. CPU, memory, PoE per port, temperature, fans, PSU status…"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to test a draft template on this hardware.
+          required: false
+        - label: I searched existing issues and this device is not already requested.
+          required: true
