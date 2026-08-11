@@ -15,18 +15,17 @@
 ![Discovery](https://img.shields.io/badge/LLD-interfaces-blueviolet)
 ![Dashboard](https://img.shields.io/badge/dashboard-Full%20HD-ff69b4)
 
-<!-- Dynamic badges (auto-update once published on GitHub).
-     Replace NET365/zabbix-snmp-switch-templates with your actual <owner>/<repo>. -->
-[![Stars](https://img.shields.io/github/stars/NET365/zabbix-snmp-switch-templates?style=social)](https://github.com/NET365/zabbix-snmp-switch-templates/stargazers)
-[![Forks](https://img.shields.io/github/forks/NET365/zabbix-snmp-switch-templates?style=social)](https://github.com/NET365/zabbix-snmp-switch-templates/network/members)
+<!-- Dynamic badges (auto-update from GitHub) -->
+[![Stars](https://img.shields.io/github/stars/net365srl/zabbix?style=social)](https://github.com/net365srl/zabbix/stargazers)
+[![Forks](https://img.shields.io/github/forks/net365srl/zabbix?style=social)](https://github.com/net365srl/zabbix/network/members)
 <br>
-[![License](https://img.shields.io/github/license/NET365/zabbix-snmp-switch-templates)](./LICENSE)
-[![Issues](https://img.shields.io/github/issues/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/issues)
-[![Pull Requests](https://img.shields.io/github/issues-pr/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/pulls)
-[![Last Commit](https://img.shields.io/github/last-commit/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/commits/main)
-[![Release](https://img.shields.io/github/v/release/NET365/zabbix-snmp-switch-templates?display_name=tag)](https://github.com/NET365/zabbix-snmp-switch-templates/releases)
-[![Repo Size](https://img.shields.io/github/repo-size/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates)
-[![Contributors](https://img.shields.io/github/contributors/NET365/zabbix-snmp-switch-templates)](https://github.com/NET365/zabbix-snmp-switch-templates/graphs/contributors)
+[![License](https://img.shields.io/github/license/net365srl/zabbix)](./LICENSE)
+[![Issues](https://img.shields.io/github/issues/net365srl/zabbix)](https://github.com/net365srl/zabbix/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/net365srl/zabbix)](https://github.com/net365srl/zabbix/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/net365srl/zabbix)](https://github.com/net365srl/zabbix/commits/main)
+[![Release](https://img.shields.io/github/v/release/net365srl/zabbix?display_name=tag)](https://github.com/net365srl/zabbix/releases)
+[![Repo Size](https://img.shields.io/github/repo-size/net365srl/zabbix)](https://github.com/net365srl/zabbix)
+[![Contributors](https://img.shields.io/github/contributors/net365srl/zabbix)](https://github.com/net365srl/zabbix/graphs/contributors)
 
 A collection of **community Zabbix 7.4 templates** to monitor smart‑managed switches over **SNMP**. Each template ships with vendor‑aware items, low‑level discovery (LLD) of network interfaces, ready‑to‑use triggers, per‑interface graphs and a Full‑HD overview dashboard. All OIDs are **numeric**, so no external MIB files need to be loaded into Zabbix.
 
