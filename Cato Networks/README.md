@@ -6,9 +6,8 @@
 
 [![Zabbix](https://img.shields.io/badge/Zabbix-7.4-red.svg)](https://www.zabbix.com/)
 [![API](https://img.shields.io/badge/Cato%20API-GraphQL-blueviolet.svg)](https://api.catonetworks.com/documentation/)
-[![License: MIT-0](https://img.shields.io/badge/License-MIT--0-green.svg)](LICENSE)
-[![Template version](https://img.shields.io/badge/template-v2.0.7-blue.svg)](CHANGELOG.md)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License: MIT-0](https://img.shields.io/badge/License-MIT--0-green.svg)](#license)
+[![Template version](https://img.shields.io/badge/template-v2.0.7-blue.svg)](#)
 
 </div>
 
@@ -75,7 +74,7 @@ schema difference) is surfaced in plain text instead of cascading into “not su
 ## Requirements
 
 - **Zabbix 7.4** server or proxy compiled with cURL (libcurl).
-- A **Cato API key** (read-only recommended) — see [docs/INSTALL.md](docs/INSTALL.md#2-create-the-cato-api-key).
+- A **Cato API key** (read-only recommended) — see [INSTALL.md](INSTALL.md#2-create-the-cato-api-key).
 - Your **CMA account ID** (the number in the CMA URL).
 - Outbound HTTPS (443) from the Zabbix server/proxy to `api*.catonetworks.com`.
 
@@ -83,13 +82,13 @@ schema difference) is surfaced in plain text instead of cascading into “not su
 
 ## Quick start
 
-1. **Import** `templates/template_cato_networks_http.yaml` via *Data collection → Templates → Import*.
+1. **Import** `template_cato_networks_http.yaml` via *Data collection → Templates → Import*.
 2. **Create a host** (e.g. `Cato Account - ACME`) and link **Cato Networks by HTTP**.
 3. **Set macros** `{$CATO.API.KEY}` (Secret) and `{$CATO.ACCOUNT.ID}`.
 4. Wait a couple of cycles, then open the **Cato Networks - Overview** dashboard.
 
 Full walkthrough — including **how to create the API key step by step** (Service Principal), the permission
-matrix and regional endpoints — in [docs/INSTALL.md](docs/INSTALL.md).
+matrix and regional endpoints — in [INSTALL.md](INSTALL.md).
 
 ---
 
@@ -131,12 +130,13 @@ returns valid data.
 
 ---
 
-## Documentation
+## Repository contents
 
-| Document | Purpose |
-|----------|---------|
-| [docs/INSTALL.md](docs/INSTALL.md) | Step-by-step install, **API key creation**, permission matrix, endpoints |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| File | Purpose |
+|------|---------|
+| `template_cato_networks_http.yaml` | The Zabbix 7.4 template (import this) |
+| `README.md` | This file |
+| `INSTALL.md` | Step-by-step install, API key creation, permission matrix, endpoints |
 
 ---
 
@@ -147,4 +147,5 @@ This is a **community project** and is **not affiliated with, endorsed by, or su
 
 ## License
 
-Released under the [MIT-0](LICENSE) license (MIT No Attribution).
+Released under the **MIT-0** license (MIT No Attribution) — free to use, modify and redistribute without
+attribution.
