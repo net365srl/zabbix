@@ -1,0 +1,1986 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+  - uuid: 817ac2782d3548a7972e0d0a0e02a7ee
+    name: Templates/Network devices
+  templates:
+  - uuid: fa76bedb22b449a9a1438e18b1208e99
+    template: Cato Networks by HTTP
+    name: Cato Networks by HTTP
+    description: |-
+      Template to monitor a Cato Networks SASE account through the Cato GraphQL API (HTTP agent).
+
+      Master HTTP items call the Cato GraphQL API; LLD + dependent items build per-site / per-WAN-link /
+      per-BGP-peer metrics WITHOUT extra API calls, respecting Cato API rate limiting.
+
+      Cato GraphQL APIs consumed: accountSnapshot, accountMetrics, entityLookup, eventsFeed. BGP peer status is
+      DISABLED by default (its schema field is not stable/universal); enable it after verifying the query.
+      Model: ONE Zabbix host = ONE Cato account.
+
+      Robustness: every master item has an 'API errors' sentinel; count/inventory items fall back to 0. The
+      Network quality page combines ACCOUNT-LEVEL aggregate graphs (always populated) with per-site/link
+      wildcard-pattern graphs. Per-entity items DISCARD the value (stay supported) when a link/site is temporarily
+      absent from the API (e.g. an idle WAN link omitted by accountMetrics). 'health' is off by default.
+      eventsFeed uses marker-based pagination and requires Event Feed enabled in the CMA.
+
+      Setup: create a read-only Cato API key restricted to the Zabbix source IP, link this template to a host,
+      and set {$CATO.API.KEY} and {$CATO.ACCOUNT.ID}. License: MIT-0. Version 2.1.0.
+    wizard_ready: 'YES'
+    vendor:
+      name: Community
+      version: 2.1.0
+    groups:
+    - name: Templates/Network devices
+    items:
+    - uuid: d4e538cbbcbe432097f3710eab838be4
+      name: 'Cato: Get account snapshot'
+      type: HTTP_AGENT
+      key: cato.snapshot.raw
+      history: '0'
+      trends: '0'
+      value_type: TEXT
+      delay: '{$CATO.SNAPSHOT.INTERVAL}'
+      timeout: 30s
+      url: '{$CATO.API.URL}'
+      posts: '{"query":"query accountSnapshot($accountID:ID!){accountSnapshot(accountID:$accountID){id sites{id connectivityStatus operationalStatus lastConnected connectedSince popName hostCount info{name type countryName region} devices{id name connected haRole lastConnected lastPopName type uptimeSeconds socketInfo{serial version} interfaces{id name physicalPort connected}}}}}","variables":{"accountID":"{$CATO.ACCOUNT.ID}"}}'
+      request_method: POST
+      post_type: JSON
+      headers:
+      - name: x-api-key
+        value: '{$CATO.API.KEY}'
+      - name: Content-Type
+        value: application/json
+      tags:
+      - tag: component
+        value: raw
+      - tag: source
+        value: snapshot
+    - uuid: 0ddfd178ade9470cb8c4be8b03e00297
+      name: 'Cato: Get account metrics'
+      type: HTTP_AGENT
+      key: cato.metrics.raw
+      history: '0'
+      trends: '0'
+      value_type: TEXT
+      delay: '{$CATO.METRICS.INTERVAL}'
+      timeout: 60s
+      url: '{$CATO.API.URL}'
+      posts: '{"query":"query accountMetrics($accountID:ID!,$timeFrame:TimeFrame!){accountMetrics(accountID:$accountID,timeFrame:$timeFrame,groupDevices:true){from to sites{id name interfaces{name metrics{bytesDownstream bytesUpstream bytesTotal lostDownstreamPcnt lostUpstreamPcnt jitterUpstream jitterDownstream rtt packetsDiscardedDownstream packetsDiscardedUpstream}}}}}","variables":{"accountID":"{$CATO.ACCOUNT.ID}","timeFrame":"{$CATO.METRICS.TIMEFRAME}"}}'
+      request_method: POST
+      post_type: JSON
+      headers:
+      - name: x-api-key
+        value: '{$CATO.API.KEY}'
+      - name: Content-Type
+        value: application/json
+      tags:
+      - tag: component
+        value: raw
+      - tag: source
+        value: metrics
+    - uuid: 0e7162fe5c2543779e83c2c29b8f7921
+      name: 'Cato: Get BGP status'
+      type: HTTP_AGENT
+      key: cato.bgp.raw
+      history: '0'
+      trends: '0'
+      value_type: TEXT
+      delay: '{$CATO.BGP.INTERVAL}'
+      timeout: 60s
+      url: '{$CATO.API.URL}'
+      posts: '{"query":"query bgp($accountID:ID!){accountSnapshot(accountID:$accountID){sites{id info{name} devices{bgpStatus{peers{peerName peerAsn catoAsn peerIp state uptime advertisedRoutes receivedRoutes}}}}}}","variables":{"accountID":"{$CATO.ACCOUNT.ID}"}}'
+      request_method: POST
+      post_type: JSON
+      headers:
+      - name: x-api-key
+        value: '{$CATO.API.KEY}'
+      - name: Content-Type
+        value: application/json
+      tags:
+      - tag: component
+        value: raw
+      - tag: source
+        value: bgp
+      description: 'DISABLED BY DEFAULT. The BGP peer status field is NOT part of the public/stable Cato schema and differs per account (bgpStatus is not on DeviceSnapshot). To enable: (1) open the Cato GraphQL Playground, run introspection and find the correct BGP status query for your account; (2) replace the query in this item; (3) enable this item and the "Cato: BGP peer discovery" LLD rule.'
+      status: DISABLED
+    - uuid: a3cc739f2a174c499916e2004b76e18f
+      name: 'Cato: Get entity inventory (sites)'
+      type: HTTP_AGENT
+      key: cato.entities.raw
+      history: '0'
+      trends: '0'
+      value_type: TEXT
+      delay: '{$CATO.INVENTORY.INTERVAL}'
+      timeout: 30s
+      url: '{$CATO.API.URL}'
+      posts: '{"query":"query entityLookup($accountID:ID!){entityLookup(accountID:$accountID,type:site){total items{entity{id name type}}}}","variables":{"accountID":"{$CATO.ACCOUNT.ID}"}}'
+      request_method: POST
+      post_type: JSON
+      headers:
+      - name: x-api-key
+        value: '{$CATO.API.KEY}'
+      - name: Content-Type
+        value: application/json
+      tags:
+      - tag: component
+        value: raw
+      - tag: source
+        value: entities
+      description: 'entityLookup type=site: authoritative count of configured sites for drift detection. Needs Accounts/Sites read permission.'
+    - uuid: 0d9f2e2b7e844263a8e1c01c9cb9138c
+      name: 'Cato: Get events summary'
+      type: HTTP_AGENT
+      key: cato.events.raw
+      history: '0'
+      trends: '0'
+      value_type: TEXT
+      delay: '{$CATO.EVENTS.INTERVAL}'
+      timeout: 60s
+      url: '{$CATO.API.URL}'
+      posts: '{"query":"query events($accountID:ID!){eventsFeed(accountIDs:[$accountID],marker:\"\"){fetchedCount marker}}","variables":{"accountID":"{$CATO.ACCOUNT.ID}"}}'
+      request_method: POST
+      post_type: JSON
+      headers:
+      - name: x-api-key
+        value: '{$CATO.API.KEY}'
+      - name: Content-Type
+        value: application/json
+      tags:
+      - tag: component
+        value: raw
+      - tag: source
+        value: events
+      description: eventsFeed uses marker-based pagination (max 3000 events/fetch). Requires Event Feed enabled + Events permission.
+    - uuid: d0168ec17346486cb62fc5b90f6f5779
+      name: 'Cato: API errors (snapshot)'
+      type: DEPENDENT
+      key: cato.snapshot.errors
+      value_type: TEXT
+      description: Non-empty when the accountSnapshot query returns errors[].
+      history: 7d
+      trends: '0'
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.errors[*].message
+        error_handler: CUSTOM_VALUE
+        error_handler_params: ''
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: health
+    - uuid: 38d3f4228ea7432f8e8e1659527c56c0
+      name: 'Cato: Metrics API errors'
+      type: DEPENDENT
+      key: cato.metrics.errors
+      value_type: TEXT
+      description: Non-empty when the accountMetrics query returns errors[].
+      history: 7d
+      trends: '0'
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.errors[*].message
+        error_handler: CUSTOM_VALUE
+        error_handler_params: ''
+      master_item:
+        key: cato.metrics.raw
+      tags:
+      - tag: component
+        value: health
+    - uuid: 112f12feb23e4fbba09650ac2908196b
+      name: 'Cato: Entity inventory API errors'
+      type: DEPENDENT
+      key: cato.entities.errors
+      value_type: TEXT
+      description: Non-empty when the entityLookup query returns errors[].
+      history: 7d
+      trends: '0'
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.errors[*].message
+        error_handler: CUSTOM_VALUE
+        error_handler_params: ''
+      master_item:
+        key: cato.entities.raw
+      tags:
+      - tag: component
+        value: health
+    - uuid: d492845505db4c2690968dfe6d09abc0
+      name: 'Cato: BGP API errors'
+      type: DEPENDENT
+      key: cato.bgp.errors
+      value_type: TEXT
+      description: Non-empty when the BGP query returns errors[].
+      history: 7d
+      trends: '0'
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.errors[*].message
+        error_handler: CUSTOM_VALUE
+        error_handler_params: ''
+      master_item:
+        key: cato.bgp.raw
+      tags:
+      - tag: component
+        value: health
+    - uuid: bcad1b4b3de1445e89e388c28a1a670d
+      name: 'Cato: Events API errors'
+      type: DEPENDENT
+      key: cato.events.errors
+      value_type: TEXT
+      description: Non-empty when the eventsFeed query returns errors[].
+      history: 7d
+      trends: '0'
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.errors[*].message
+        error_handler: CUSTOM_VALUE
+        error_handler_params: ''
+      master_item:
+        key: cato.events.raw
+      tags:
+      - tag: component
+        value: health
+    - uuid: 12fbbd4fc81648ecb0d910ce67ec15db
+      name: 'Cato: Sites total'
+      type: DEPENDENT
+      key: cato.sites.total
+      value_type: FLOAT
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.data.accountSnapshot.sites.length()
+        error_handler: CUSTOM_VALUE
+        error_handler_params: '0'
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: 6deeb180488049b8922ccbf3da6f60b3
+      name: 'Cato: Sites connected'
+      type: DEPENDENT
+      key: cato.sites.connected
+      value_type: FLOAT
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.data.accountSnapshot.sites[?(@.connectivityStatus=="connected")].length()
+        error_handler: CUSTOM_VALUE
+        error_handler_params: '0'
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: efb0185d38f44c48994beebd1f40e446
+      name: 'Cato: Sites disconnected'
+      type: DEPENDENT
+      key: cato.sites.disconnected
+      value_type: FLOAT
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.data.accountSnapshot.sites[?(@.connectivityStatus=="disconnected")].length()
+        error_handler: CUSTOM_VALUE
+        error_handler_params: '0'
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: 232506333c324da69a1dc82458c8ddec
+      name: 'Cato: Sites not active (operational)'
+      type: DEPENDENT
+      key: cato.sites.notactive
+      value_type: FLOAT
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.data.accountSnapshot.sites[?(@.operationalStatus!="active")].length()
+        error_handler: CUSTOM_VALUE
+        error_handler_params: '0'
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: 1dd11f13caaf47e7ad6b142adb64db6e
+      name: 'Cato: Connected hosts (total)'
+      type: DEPENDENT
+      key: cato.hosts.total
+      value_type: UNSIGNED
+      description: Sum of hostCount across all sites.
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountSnapshot.sites||[];var t=0;for(var i=0;i<s.length;i++){t+=(s[i].hostCount||0);}return t;
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: 1ccb8c8d6c324c519b5b0886b86a7350
+      name: 'Cato: Sockets total'
+      type: DEPENDENT
+      key: cato.sockets.total
+      value_type: UNSIGNED
+      description: Total Socket devices (includes HA pairs).
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountSnapshot.sites||[];var t=0;for(var i=0;i<s.length;i++){t+=((s[i].devices||[]).length);}return t;
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: c8827c368b6c41ff935c393a10fa3c23
+      name: 'Cato: Sockets disconnected'
+      type: DEPENDENT
+      key: cato.sockets.disconnected
+      value_type: UNSIGNED
+      description: Socket devices currently not connected (HA health).
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountSnapshot.sites||[];var t=0;for(var i=0;i<s.length;i++){var d=s[i].devices||[];for(var j=0;j<d.length;j++){if(d[j].connected===false)t++;}}return t;
+      master_item:
+        key: cato.snapshot.raw
+      tags:
+      - tag: component
+        value: account
+      triggers:
+      - uuid: ae9c82deb62f4ceea217001f001b2690
+        expression: last(/Cato Networks by HTTP/cato.sockets.disconnected)>0
+        name: 'Cato: One or more Sockets are disconnected (HA at risk)'
+        priority: HIGH
+        description: At least one Socket (possibly an HA member) is down.
+    - uuid: 81c03beea6ac4307a2a4a5b5dc665ee3
+      name: 'Cato: Account throughput downstream'
+      type: DEPENDENT
+      key: cato.traffic.total.down
+      value_type: FLOAT
+      description: Aggregated downstream throughput.
+      units: Bps
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountMetrics.sites||[];var t=0;for(var i=0;i<s.length;i++){var f=s[i].interfaces||[];for(var j=0;j<f.length;j++){t+=(f[j].metrics.bytesDownstream||0);}}return t;
+      - type: MULTIPLIER
+        parameters:
+        - '0.0033333'
+      master_item:
+        key: cato.metrics.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: e066ea198419424dbb47398f3f01e578
+      name: 'Cato: Account throughput upstream'
+      type: DEPENDENT
+      key: cato.traffic.total.up
+      value_type: FLOAT
+      description: Aggregated upstream throughput.
+      units: Bps
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountMetrics.sites||[];var t=0;for(var i=0;i<s.length;i++){var f=s[i].interfaces||[];for(var j=0;j<f.length;j++){t+=(f[j].metrics.bytesUpstream||0);}}return t;
+      - type: MULTIPLIER
+        parameters:
+        - '0.0033333'
+      master_item:
+        key: cato.metrics.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: 232fd9a44ae54c8b9b051f899308a4e4
+      name: 'Cato: Account average RTT'
+      type: DEPENDENT
+      key: cato.rtt.avg
+      value_type: FLOAT
+      description: Average RTT across all WAN links.
+      units: ms
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountMetrics.sites||[];var t=0,n=0;for(var i=0;i<s.length;i++){var f=s[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].metrics.rtt!=null){t+=f[j].metrics.rtt;n++;}}}return n?t/n:0;
+      master_item:
+        key: cato.metrics.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: 3626f7ff0c1c4ca08c8fc19d3b7484a4
+      name: 'Cato: Account max packet loss'
+      type: DEPENDENT
+      key: cato.loss.max
+      value_type: FLOAT
+      description: Worst packet loss across all WAN links.
+      units: '%'
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountMetrics.sites||[];var m=0;for(var i=0;i<s.length;i++){var f=s[i].interfaces||[];for(var j=0;j<f.length;j++){var a=f[j].metrics.lostDownstreamPcnt||0,b=f[j].metrics.lostUpstreamPcnt||0;m=Math.max(m,a,b);}}return m;
+      master_item:
+        key: cato.metrics.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: a05e29a822b444e8b73d3f87c874ebc0
+      name: 'Cato: Sites configured (inventory)'
+      type: DEPENDENT
+      key: cato.sites.configured
+      value_type: UNSIGNED
+      description: Total sites configured in the CMA (entityLookup total). 0 if unavailable on your account.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.data.entityLookup.total
+        error_handler: CUSTOM_VALUE
+        error_handler_params: '0'
+      master_item:
+        key: cato.entities.raw
+      tags:
+      - tag: component
+        value: account
+    - uuid: e964af0b8d7e4b4a93440e1fe6400bfa
+      name: 'Cato: Sites missing from snapshot'
+      type: CALCULATED
+      key: cato.sites.missing
+      value_type: FLOAT
+      params: last(//cato.sites.configured)-last(//cato.sites.total)
+      description: Configured sites not present in live snapshot (drift).
+      tags:
+      - tag: component
+        value: account
+      triggers:
+      - uuid: 0789463e9deb418ab0c53e121ff4c594
+        expression: last(/Cato Networks by HTTP/cato.sites.missing)>0 and last(/Cato Networks by HTTP/cato.sites.configured)>0
+        name: 'Cato: {ITEM.LASTVALUE1} site(s) configured but missing from live snapshot'
+        priority: AVERAGE
+        description: entityLookup reports more sites than accountSnapshot returns.
+    - uuid: ed98e4ae8ad4497c978389db4b61aba6
+      name: 'Cato: Events fetched (queue)'
+      type: DEPENDENT
+      key: cato.events.total
+      value_type: UNSIGNED
+      description: Number of events fetched from the queue (max 3000 per fetch).
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.data.eventsFeed.fetchedCount
+        error_handler: CUSTOM_VALUE
+        error_handler_params: '0'
+      master_item:
+        key: cato.events.raw
+      tags:
+      - tag: component
+        value: events
+    - uuid: 4c15fda1dff8465da31bf87252e360eb
+      name: 'Cato: Sites availability (instant %)'
+      type: CALCULATED
+      key: cato.sla.instant
+      value_type: FLOAT
+      params: 100*last(//cato.sites.connected)/(last(//cato.sites.total)+(last(//cato.sites.total)=0))
+      units: '%'
+      description: Instantaneous percentage of sites connected.
+      tags:
+      - tag: component
+        value: sla
+    - uuid: 67417d155dec42b79ba616d6a5cd5cf4
+      name: 'Cato: Sites availability (24h %)'
+      type: CALCULATED
+      key: cato.sla.24h
+      value_type: FLOAT
+      params: avg(//cato.sla.instant,1d)
+      units: '%'
+      description: Average site availability over last 24h.
+      tags:
+      - tag: component
+        value: sla
+      triggers:
+      - uuid: 7e2d03107c1d497397d0bd31d53912cf
+        expression: last(/Cato Networks by HTTP/cato.sla.24h)<{$CATO.SLA.TARGET}
+        name: 'Cato: 24h availability below SLA target ({$CATO.SLA.TARGET}%)'
+        priority: HIGH
+        description: Rolling 24h site availability dropped below the SLA objective.
+    - uuid: eecc65ca3b4e40d3833af6161d7033d3
+      name: 'Cato: Sites availability (7d %)'
+      type: CALCULATED
+      key: cato.sla.7d
+      value_type: FLOAT
+      params: avg(//cato.sla.instant,7d)
+      units: '%'
+      description: Average site availability over last 7 days.
+      tags:
+      - tag: component
+        value: sla
+    - uuid: 187abc92606a45569aaee3667b31f32c
+      name: 'Cato: Sites availability (30d %)'
+      type: CALCULATED
+      key: cato.sla.30d
+      value_type: FLOAT
+      params: avg(//cato.sla.instant,30d)
+      units: '%'
+      description: Average site availability over last 30 days.
+      tags:
+      - tag: component
+        value: sla
+    discovery_rules:
+    - uuid: 1d43e6cf6ebf4a7fada1c787954c5342
+      name: 'Cato: Site discovery'
+      type: DEPENDENT
+      key: cato.site.discovery
+      delay: '0'
+      description: Discovers all sites from accountSnapshot.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.data.accountSnapshot.sites
+      master_item:
+        key: cato.snapshot.raw
+      lld_macro_paths:
+      - lld_macro: '{#SITE.ID}'
+        path: $.id
+      - lld_macro: '{#SITE.NAME}'
+        path: $.info.name
+      - lld_macro: '{#SITE.TYPE}'
+        path: $.info.type
+      - lld_macro: '{#POP.NAME}'
+        path: $.popName
+      filter:
+        evaltype: AND
+        conditions:
+        - macro: '{#SITE.NAME}'
+          value: '{$CATO.SITE.NAME.MATCHES}'
+          formulaid: A
+        - macro: '{#SITE.NAME}'
+          value: '{$CATO.SITE.NAME.NOT_MATCHES}'
+          operator: NOT_MATCHES_REGEX
+          formulaid: B
+      item_prototypes:
+      - uuid: fd872ad5af404a32b0aef35bcb3e20ee
+        name: 'Cato: [{#SITE.NAME}] Connectivity status'
+        type: DEPENDENT
+        key: cato.site.connectivity[{#SITE.ID}]
+        value_type: UNSIGNED
+        description: 1 = connected, 0 = disconnected.
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites;for(var i=0;i<s.length;i++){if(s[i].id=='{#SITE.ID}')return s[i].connectivityStatus=='connected'?1:0;}throw 'site not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.snapshot.raw
+        valuemap:
+          name: Cato connectivity
+        tags:
+        - tag: component
+          value: site
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: 7c0665f7e2dc4cb0916937c6d79bfc70
+          expression: last(/Cato Networks by HTTP/cato.site.connectivity[{#SITE.ID}])=0
+          name: 'Cato: [{#SITE.NAME}] Site is disconnected from Cato Cloud'
+          priority: HIGH
+          description: The site lost connectivity to the Cato Cloud PoP.
+      - uuid: 3d4c53c9395c4cfb81d669b6de8a4788
+        name: 'Cato: [{#SITE.NAME}] Operational status'
+        type: DEPENDENT
+        key: cato.site.operational[{#SITE.ID}]
+        value_type: CHAR
+        description: active / disabled / locked / new ...
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites;for(var i=0;i<s.length;i++){if(s[i].id=='{#SITE.ID}')return s[i].operationalStatus;}throw 'site not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.snapshot.raw
+        tags:
+        - tag: component
+          value: site
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: c84169a32c684add915b0d77dc49f7f2
+          expression: last(/Cato Networks by HTTP/cato.site.operational[{#SITE.ID}])<>"active"
+          name: 'Cato: [{#SITE.NAME}] Site operational status is not active'
+          priority: WARNING
+          description: The site is not passing traffic.
+      - uuid: a08fae1e5a714217979f4e9fb831f232
+        name: 'Cato: [{#SITE.NAME}] Connected PoP'
+        type: DEPENDENT
+        key: cato.site.pop[{#SITE.ID}]
+        value_type: CHAR
+        preprocessing:
+        - type: JSONPATH
+          parameters:
+          - $.data.accountSnapshot.sites[?(@.id=="{#SITE.ID}")].popName.first()
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.snapshot.raw
+        tags:
+        - tag: component
+          value: site
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: fed35ce5dcda4d998549c460d38e1a63
+        name: 'Cato: [{#SITE.NAME}] Connected hosts'
+        type: DEPENDENT
+        key: cato.site.hostcount[{#SITE.ID}]
+        value_type: UNSIGNED
+        preprocessing:
+        - type: JSONPATH
+          parameters:
+          - $.data.accountSnapshot.sites[?(@.id=="{#SITE.ID}")].hostCount.first()
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.snapshot.raw
+        tags:
+        - tag: component
+          value: site
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: c164d986c9bd46808bb351551cb5cff5
+        name: 'Cato: [{#SITE.NAME}] Connected since'
+        type: DEPENDENT
+        key: cato.site.connectedsince[{#SITE.ID}]
+        value_type: CHAR
+        preprocessing:
+        - type: JSONPATH
+          parameters:
+          - $.data.accountSnapshot.sites[?(@.id=="{#SITE.ID}")].connectedSince.first()
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.snapshot.raw
+        tags:
+        - tag: component
+          value: site
+        - tag: site
+          value: '{#SITE.NAME}'
+      graph_prototypes:
+      - uuid: cf7733bd6e0f40c8ab46d481e910d233
+        name: 'Cato: [{#SITE.NAME}] Connected hosts'
+        graph_items:
+        - color: 1A7C11
+          item:
+            host: Cato Networks by HTTP
+            key: cato.site.hostcount[{#SITE.ID}]
+    - uuid: 7f41a1c00df04abfbd7d7469b0836f0d
+      name: 'Cato: WAN interface discovery'
+      type: DEPENDENT
+      key: cato.if.discovery
+      delay: '0'
+      description: Discovers every WAN link of every site from accountMetrics.
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var d=JSON.parse(value).data.accountMetrics.sites||[];var out=[];for(var i=0;i<d.length;i++){var ifs=d[i].interfaces||[];for(var j=0;j<ifs.length;j++){out.push({"{#SITE.ID}":String(d[i].id),"{#SITE.NAME}":d[i].name,"{#IF.NAME}":ifs[j].name});}}return JSON.stringify(out);
+      master_item:
+        key: cato.metrics.raw
+      filter:
+        evaltype: AND
+        conditions:
+        - macro: '{#SITE.NAME}'
+          value: '{$CATO.SITE.NAME.MATCHES}'
+          formulaid: A
+        - macro: '{#SITE.NAME}'
+          value: '{$CATO.SITE.NAME.NOT_MATCHES}'
+          operator: NOT_MATCHES_REGEX
+          formulaid: B
+      item_prototypes:
+      - uuid: 16c91f11e47a4862b9048e51c61fbfa8
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Traffic downstream'
+        type: DEPENDENT
+        key: cato.if.bytes.down[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        description: Downstream bytes.
+        units: Bps
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.bytesDownstream;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        - type: MULTIPLIER
+          parameters:
+          - '0.0033333'
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: 9c5752f07d92442d9603a0d819d6b36f
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Traffic upstream'
+        type: DEPENDENT
+        key: cato.if.bytes.up[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        description: Upstream bytes.
+        units: Bps
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.bytesUpstream;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        - type: MULTIPLIER
+          parameters:
+          - '0.0033333'
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: ea7d02f83dce408eadec72d512c0cb74
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Traffic total'
+        type: DEPENDENT
+        key: cato.if.bytes.total[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        description: Total throughput.
+        units: Bps
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.bytesTotal;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        - type: MULTIPLIER
+          parameters:
+          - '0.0033333'
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: 8ce8c4fe3e1b498da08e27932973c5cf
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Packet loss downstream'
+        type: DEPENDENT
+        key: cato.if.loss.down[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        units: '%'
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.lostDownstreamPcnt;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: 2916674b981b465cbe7d8c8de7b7205d
+          expression: min(/Cato Networks by HTTP/cato.if.loss.down[{#SITE.ID},{#IF.NAME}],#3)>{$CATO.LOSS.WARN}
+          name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] High downstream packet loss'
+          priority: WARNING
+          description: Loss above threshold for 3 polls.
+      - uuid: 53c8c4cf3be84f379009ffe4f8ccc860
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Packet loss upstream'
+        type: DEPENDENT
+        key: cato.if.loss.up[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        units: '%'
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.lostUpstreamPcnt;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: 9ec3bb95c6bc4fef89951e840012d61f
+          expression: min(/Cato Networks by HTTP/cato.if.loss.up[{#SITE.ID},{#IF.NAME}],#3)>{$CATO.LOSS.WARN}
+          name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] High upstream packet loss'
+          priority: WARNING
+      - uuid: 8b93be3eac4a4f619bbdb2458daf893f
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Jitter downstream'
+        type: DEPENDENT
+        key: cato.if.jitter.down[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        units: ms
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.jitterDownstream;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: ca685e00c4ff4ce48d89096ede425cce
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Jitter upstream'
+        type: DEPENDENT
+        key: cato.if.jitter.up[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        units: ms
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.jitterUpstream;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: ce8ddb2c0e7c44d481ab9b1747830c56
+          expression: min(/Cato Networks by HTTP/cato.if.jitter.up[{#SITE.ID},{#IF.NAME}],#3)>{$CATO.JITTER.WARN}
+          name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] High jitter'
+          priority: WARNING
+      - uuid: 0e7ee6727bbd4c53a83ba32d8c56af1d
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Round-trip time (RTT)'
+        type: DEPENDENT
+        key: cato.if.rtt[{#SITE.ID},{#IF.NAME}]
+        value_type: FLOAT
+        units: ms
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.rtt;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: fb59208be04948e78dad6fc9e62122b0
+          expression: min(/Cato Networks by HTTP/cato.if.rtt[{#SITE.ID},{#IF.NAME}],#3)>{$CATO.RTT.WARN}
+          name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] High latency (RTT)'
+          priority: WARNING
+      - uuid: 5e8a816e6afd4d12a48fc1497b214e6a
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Discarded packets downstream'
+        type: DEPENDENT
+        key: cato.if.discarded.down[{#SITE.ID},{#IF.NAME}]
+        value_type: UNSIGNED
+        description: Downstream discarded packets.
+        units: pps
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.packetsDiscardedDownstream;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: c654052fd3244175950e751f555d3980
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Discarded packets upstream'
+        type: DEPENDENT
+        key: cato.if.discarded.up[{#SITE.ID},{#IF.NAME}]
+        value_type: UNSIGNED
+        description: Upstream discarded packets.
+        units: pps
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var d=JSON.parse(value).data.accountMetrics.sites;for(var i=0;i<d.length;i++){if(String(d[i].id)=='{#SITE.ID}'){var f=d[i].interfaces||[];for(var j=0;j<f.length;j++){if(f[j].name=='{#IF.NAME}')return f[j].metrics.packetsDiscardedUpstream;}}}throw 'iface not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.metrics.raw
+        tags:
+        - tag: component
+          value: interface
+        - tag: site
+          value: '{#SITE.NAME}'
+      graph_prototypes:
+      - uuid: 2e00bc58beac430a97633f4fbede1f69
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Traffic'
+        ymin_type_1: FIXED
+        graph_items:
+        - color: 1A7C11
+          item:
+            host: Cato Networks by HTTP
+            key: cato.if.bytes.down[{#SITE.ID},{#IF.NAME}]
+        - color: 2774A4
+          item:
+            host: Cato Networks by HTTP
+            key: cato.if.bytes.up[{#SITE.ID},{#IF.NAME}]
+          sortorder: '1'
+      - uuid: ab33a36cde2c40c6affd60a0185d0417
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Packet loss'
+        graph_items:
+        - color: E8770D
+          item:
+            host: Cato Networks by HTTP
+            key: cato.if.loss.down[{#SITE.ID},{#IF.NAME}]
+        - color: CC0000
+          item:
+            host: Cato Networks by HTTP
+            key: cato.if.loss.up[{#SITE.ID},{#IF.NAME}]
+          sortorder: '1'
+      - uuid: 15bd0c09a0e34e7887db6945ab791cf0
+        name: 'Cato: [{#SITE.NAME}/{#IF.NAME}] Latency and jitter'
+        graph_items:
+        - color: 2774A4
+          item:
+            host: Cato Networks by HTTP
+            key: cato.if.rtt[{#SITE.ID},{#IF.NAME}]
+        - color: F63100
+          item:
+            host: Cato Networks by HTTP
+            key: cato.if.jitter.down[{#SITE.ID},{#IF.NAME}]
+          sortorder: '1'
+        - color: A54F10
+          item:
+            host: Cato Networks by HTTP
+            key: cato.if.jitter.up[{#SITE.ID},{#IF.NAME}]
+          sortorder: '2'
+    - uuid: b91c0709a24341bd90ca1169476fa128
+      name: 'Cato: Socket / device discovery'
+      type: DEPENDENT
+      key: cato.device.discovery
+      delay: '0'
+      description: Discovers every Socket (incl. HA members) from accountSnapshot.
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var s=JSON.parse(value).data.accountSnapshot.sites||[];var out=[];for(var i=0;i<s.length;i++){var d=s[i].devices||[];for(var j=0;j<d.length;j++){out.push({"{#SITE.ID}":String(s[i].id),"{#SITE.NAME}":(s[i].info?s[i].info.name:s[i].id),"{#DEVICE.ID}":String(d[j].id),"{#DEVICE.NAME}":d[j].name,"{#HA.ROLE}":d[j].haRole||"primary"});}}return JSON.stringify(out);
+      master_item:
+        key: cato.snapshot.raw
+      item_prototypes:
+      - uuid: 201e646e8fba489f9e64480aec55d989
+        name: 'Cato: [{#SITE.NAME}] Socket {#DEVICE.NAME} ({#HA.ROLE}) connected'
+        type: DEPENDENT
+        key: cato.device.connected[{#DEVICE.ID}]
+        value_type: UNSIGNED
+        description: 1 = connected, 0 = down.
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites;for(var i=0;i<s.length;i++){var d=s[i].devices||[];for(var j=0;j<d.length;j++){if(String(d[j].id)=='{#DEVICE.ID}')return d[j].connected?1:0;}}throw 'device not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.snapshot.raw
+        valuemap:
+          name: Cato connectivity
+        tags:
+        - tag: component
+          value: socket
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: 89ae61018b934eb28b5689f57aaf09e3
+          expression: last(/Cato Networks by HTTP/cato.device.connected[{#DEVICE.ID}])=0
+          name: 'Cato: [{#SITE.NAME}] Socket {#DEVICE.NAME} ({#HA.ROLE}) is down'
+          priority: HIGH
+          description: A Socket (HA member) lost connectivity.
+      - uuid: a53d906a25244ba0add85f004d106f89
+        name: 'Cato: [{#SITE.NAME}] Socket {#DEVICE.NAME} uptime'
+        type: DEPENDENT
+        key: cato.device.uptime[{#DEVICE.ID}]
+        value_type: FLOAT
+        units: uptime
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites;for(var i=0;i<s.length;i++){var d=s[i].devices||[];for(var j=0;j<d.length;j++){if(String(d[j].id)=='{#DEVICE.ID}')return d[j].uptimeSeconds||0;}}throw 'device not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.snapshot.raw
+        tags:
+        - tag: component
+          value: socket
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: ab8fb82df6474a6e9df9581f8c5daf3d
+          expression: last(/Cato Networks by HTTP/cato.device.uptime[{#DEVICE.ID}])<600
+          name: 'Cato: [{#SITE.NAME}] Socket {#DEVICE.NAME} rebooted (uptime < 10m)'
+          priority: INFO
+          description: Socket recently restarted.
+      - uuid: 85391041a69d4b5d9a123cb71963aa2b
+        name: 'Cato: [{#SITE.NAME}] Socket {#DEVICE.NAME} firmware version'
+        type: DEPENDENT
+        key: cato.device.version[{#DEVICE.ID}]
+        value_type: CHAR
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites;for(var i=0;i<s.length;i++){var d=s[i].devices||[];for(var j=0;j<d.length;j++){if(String(d[j].id)=='{#DEVICE.ID}')return (d[j].socketInfo&&d[j].socketInfo.version)?d[j].socketInfo.version:'unknown';}}throw 'device not found';
+          error_handler: DISCARD_VALUE
+        - type: DISCARD_UNCHANGED_HEARTBEAT
+          parameters:
+          - 1d
+        master_item:
+          key: cato.snapshot.raw
+        tags:
+        - tag: component
+          value: socket
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: 5392621b96f54469b4f2ab7eae0213c3
+          expression: change(/Cato Networks by HTTP/cato.device.version[{#DEVICE.ID}])<>0 and length(last(/Cato Networks by HTTP/cato.device.version[{#DEVICE.ID}]))>0
+          name: 'Cato: [{#SITE.NAME}] Socket {#DEVICE.NAME} firmware changed'
+          priority: INFO
+          manual_close: 'YES'
+    - uuid: 011c5fd46b5b4505bb7e439d91f7dfc5
+      name: 'Cato: BGP peer discovery'
+      type: DEPENDENT
+      key: cato.bgp.discovery
+      delay: '0'
+      status: DISABLED
+      description: 'DISABLED BY DEFAULT (depends on the disabled "Cato: Get BGP status" item). Enable both only after confirming the correct BGP status query for your account via GraphQL introspection.'
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - var out=[];try{var s=JSON.parse(value).data.accountSnapshot.sites||[];for(var i=0;i<s.length;i++){var sn=(s[i].info&&s[i].info.name)?s[i].info.name:String(s[i].id);var dv=s[i].devices||[];for(var d=0;d<dv.length;d++){var bs=dv[d].bgpStatus;if(!bs)continue;var pl=bs.peers||[];for(var p=0;p<pl.length;p++){out.push({"{#SITE.ID}":String(s[i].id),"{#SITE.NAME}":sn,"{#PEER.NAME}":pl[p].peerName||pl[p].peerIp,"{#PEER.IP}":pl[p].peerIp,"{#PEER.ASN}":String(pl[p].peerAsn)});}}}}catch(e){}return JSON.stringify(out);
+      master_item:
+        key: cato.bgp.raw
+      item_prototypes:
+      - uuid: c13023282e7048a6b1c80932d51f8a43
+        name: 'Cato: [{#SITE.NAME}] BGP {#PEER.NAME} (AS{#PEER.ASN}) state'
+        type: DEPENDENT
+        key: cato.bgp.state[{#SITE.ID},{#PEER.IP}]
+        value_type: UNSIGNED
+        description: 1 = Established, 0 = otherwise.
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites||[];for(var i=0;i<s.length;i++){var dv=s[i].devices||[];for(var d=0;d<dv.length;d++){var bs=dv[d].bgpStatus;if(!bs)continue;var pl=bs.peers||[];for(var p=0;p<pl.length;p++){if(pl[p].peerIp=='{#PEER.IP}')return (String(pl[p].state).toLowerCase()=='established')?1:0;}}}throw 'peer not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.bgp.raw
+        valuemap:
+          name: Cato BGP state
+        tags:
+        - tag: component
+          value: bgp
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: 2fbf872d213043e8aa8f10396807e70f
+          expression: last(/Cato Networks by HTTP/cato.bgp.state[{#SITE.ID},{#PEER.IP}])=0
+          name: 'Cato: [{#SITE.NAME}] BGP peer {#PEER.NAME} is not Established'
+          priority: HIGH
+          description: The BGP session to {#PEER.IP} (AS{#PEER.ASN}) is down.
+      - uuid: 3af1cf20562c4892b092fb642d2f13c5
+        name: 'Cato: [{#SITE.NAME}] BGP {#PEER.NAME} advertised routes'
+        type: DEPENDENT
+        key: cato.bgp.advertised[{#SITE.ID},{#PEER.IP}]
+        value_type: UNSIGNED
+        description: Prefixes advertised to the peer.
+        units: routes
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites||[];for(var i=0;i<s.length;i++){var dv=s[i].devices||[];for(var d=0;d<dv.length;d++){var bs=dv[d].bgpStatus;if(!bs)continue;var pl=bs.peers||[];for(var p=0;p<pl.length;p++){if(pl[p].peerIp=='{#PEER.IP}')return pl[p].advertisedRoutes;}}}throw 'peer not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.bgp.raw
+        tags:
+        - tag: component
+          value: bgp
+        - tag: site
+          value: '{#SITE.NAME}'
+      - uuid: 45d1b3cfcf2c4cdeb78bf8e6db47c813
+        name: 'Cato: [{#SITE.NAME}] BGP {#PEER.NAME} received routes'
+        type: DEPENDENT
+        key: cato.bgp.received[{#SITE.ID},{#PEER.IP}]
+        value_type: UNSIGNED
+        description: Prefixes received (dynamic routes learned).
+        units: routes
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites||[];for(var i=0;i<s.length;i++){var dv=s[i].devices||[];for(var d=0;d<dv.length;d++){var bs=dv[d].bgpStatus;if(!bs)continue;var pl=bs.peers||[];for(var p=0;p<pl.length;p++){if(pl[p].peerIp=='{#PEER.IP}')return pl[p].receivedRoutes;}}}throw 'peer not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.bgp.raw
+        tags:
+        - tag: component
+          value: bgp
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: c791a7b102a74759b1f2e276a161101f
+          expression: last(/Cato Networks by HTTP/cato.bgp.received[{#SITE.ID},{#PEER.IP}])=0 and last(/Cato Networks by HTTP/cato.bgp.state[{#SITE.ID},{#PEER.IP}])=1
+          name: 'Cato: [{#SITE.NAME}] BGP peer {#PEER.NAME} Established but 0 routes received'
+          priority: AVERAGE
+          description: Session up but no dynamic routes learned.
+      - uuid: dc1160173f594fc0bf9e98ce8cec479f
+        name: 'Cato: [{#SITE.NAME}] BGP {#PEER.NAME} session uptime'
+        type: DEPENDENT
+        key: cato.bgp.uptime[{#SITE.ID},{#PEER.IP}]
+        value_type: FLOAT
+        units: uptime
+        preprocessing:
+        - type: JAVASCRIPT
+          parameters:
+          - var s=JSON.parse(value).data.accountSnapshot.sites||[];for(var i=0;i<s.length;i++){var dv=s[i].devices||[];for(var d=0;d<dv.length;d++){var bs=dv[d].bgpStatus;if(!bs)continue;var pl=bs.peers||[];for(var p=0;p<pl.length;p++){if(pl[p].peerIp=='{#PEER.IP}')return pl[p].uptime||0;}}}throw 'peer not found';
+          error_handler: DISCARD_VALUE
+        master_item:
+          key: cato.bgp.raw
+        tags:
+        - tag: component
+          value: bgp
+        - tag: site
+          value: '{#SITE.NAME}'
+        trigger_prototypes:
+        - uuid: 6589b3cb4d6c49ec88586afaabe53920
+          expression: last(/Cato Networks by HTTP/cato.bgp.uptime[{#SITE.ID},{#PEER.IP}])<300 and last(/Cato Networks by HTTP/cato.bgp.uptime[{#SITE.ID},{#PEER.IP}])>0
+          name: 'Cato: [{#SITE.NAME}] BGP peer {#PEER.NAME} recently flapped (uptime < 5m)'
+          priority: WARNING
+      graph_prototypes:
+      - uuid: 510e27ed43dc41b480508a1671197652
+        name: 'Cato: [{#SITE.NAME}] BGP {#PEER.NAME} routes'
+        graph_items:
+        - color: 1A7C11
+          item:
+            host: Cato Networks by HTTP
+            key: cato.bgp.received[{#SITE.ID},{#PEER.IP}]
+        - color: 2774A4
+          item:
+            host: Cato Networks by HTTP
+            key: cato.bgp.advertised[{#SITE.ID},{#PEER.IP}]
+          sortorder: '1'
+    dashboards:
+    - uuid: 61587048c793400c85991d8a57e30eae
+      name: Cato Networks - Overview
+      pages:
+      - name: Overview
+        widgets:
+        - type: item
+          name: Sites total
+          x: '0'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sites.total
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Sites connected
+          x: '12'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sites.connected
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: 1A7C11
+        - type: item
+          name: Sites disconnected
+          x: '24'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sites.disconnected
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: CC0000
+        - type: item
+          name: Sites not active
+          x: '36'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sites.notactive
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: E8770D
+        - type: item
+          name: Connected hosts (total)
+          x: '0'
+          y: '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.hosts.total
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Sockets disconnected
+          x: '12'
+          y: '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sockets.disconnected
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: CC0000
+        - type: item
+          name: Average RTT
+          x: '24'
+          y: '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.rtt.avg
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Max packet loss
+          x: '36'
+          y: '3'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.loss.max
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: E8770D
+        - type: piechart
+          name: Sites connected vs disconnected
+          x: '0'
+          y: '6'
+          width: '16'
+          height: '5'
+          fields:
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: Sites connected'
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.1.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Cato: Sites disconnected'
+          - type: STRING
+            name: ds.1.color
+            value: CC0000
+        - type: svggraph
+          name: Account throughput (up/down)
+          x: '16'
+          y: '6'
+          width: '32'
+          height: '5'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: Account throughput downstream'
+          - type: STRING
+            name: ds.1.color
+            value: 2774A4
+          - type: STRING
+            name: ds.1.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Cato: Account throughput upstream'
+        - type: honeycomb
+          name: Sites connectivity
+          x: '0'
+          y: '11'
+          width: '24'
+          height: '5'
+          fields:
+          - type: STRING
+            name: hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: items.0
+            value: 'Cato: * Connectivity status'
+          - type: STRING
+            name: primary_label
+            value: '{{ITEM.NAME}.regsub("\[(.+)\]", "\1")}'
+        - type: honeycomb
+          name: Sockets connectivity
+          x: '24'
+          y: '11'
+          width: '24'
+          height: '5'
+          fields:
+          - type: STRING
+            name: hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: items.0
+            value: 'Cato: * Socket * connected'
+          - type: STRING
+            name: primary_label
+            value: '{{ITEM.NAME}.regsub("\[(.+)\] Socket (.+) \(", "\1 / \2")}'
+        - type: problems
+          name: Cato problems
+          x: '0'
+          y: '16'
+          width: '48'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: show_tags
+            value: '3'
+      - name: Network quality
+        widgets:
+        - type: item
+          name: Average RTT
+          x: '0'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.rtt.avg
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Max packet loss
+          x: '12'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.loss.max
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: E8770D
+        - type: gauge
+          name: Average RTT (ms)
+          x: '24'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.rtt.avg
+          - type: INTEGER
+            name: min
+            value: '0'
+          - type: INTEGER
+            name: max
+            value: '500'
+        - type: gauge
+          name: Max packet loss (%)
+          x: '36'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.loss.max
+          - type: INTEGER
+            name: min
+            value: '0'
+          - type: INTEGER
+            name: max
+            value: '20'
+        - type: svggraph
+          name: Account throughput (down / up)
+          x: '0'
+          y: '3'
+          width: '24'
+          height: '5'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: Account throughput downstream'
+          - type: STRING
+            name: ds.1.color
+            value: 2774A4
+          - type: STRING
+            name: ds.1.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Cato: Account throughput upstream'
+        - type: svggraph
+          name: Account RTT & max packet loss
+          x: '24'
+          y: '3'
+          width: '24'
+          height: '5'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 2774A4
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: Account average RTT'
+          - type: STRING
+            name: ds.1.color
+            value: CC0000
+          - type: STRING
+            name: ds.1.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Cato: Account max packet loss'
+        - type: svggraph
+          name: Throughput per link — downstream (all sites)
+          x: '0'
+          y: '8'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: * Traffic downstream'
+        - type: svggraph
+          name: Throughput per link — upstream (all sites)
+          x: '24'
+          y: '8'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 2774A4
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: * Traffic upstream'
+        - type: svggraph
+          name: RTT per link (all sites)
+          x: '0'
+          y: '14'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 2774A4
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: * Round-trip time (RTT)'
+        - type: svggraph
+          name: Packet loss per link (all sites)
+          x: '24'
+          y: '14'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: E8770D
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: * Packet loss downstream'
+          - type: STRING
+            name: ds.1.color
+            value: CC0000
+          - type: STRING
+            name: ds.1.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Cato: * Packet loss upstream'
+        - type: svggraph
+          name: Jitter per link (all sites)
+          x: '0'
+          y: '20'
+          width: '48'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: F63100
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: * Jitter downstream'
+          - type: STRING
+            name: ds.1.color
+            value: A54F10
+          - type: STRING
+            name: ds.1.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.1.items.0
+            value: 'Cato: * Jitter upstream'
+      - name: Sites & sockets
+        widgets:
+        - type: item
+          name: Sites total
+          x: '0'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sites.total
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Sockets total
+          x: '12'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sockets.total
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Connected hosts (total)
+          x: '24'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.hosts.total
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Sites disconnected
+          x: '36'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sites.disconnected
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: CC0000
+        - type: honeycomb
+          name: Sites connectivity map
+          x: '0'
+          y: '3'
+          width: '48'
+          height: '6'
+          fields:
+          - type: STRING
+            name: hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: items.0
+            value: 'Cato: * Connectivity status'
+          - type: STRING
+            name: primary_label
+            value: '{{ITEM.NAME}.regsub("\[(.+)\]", "\1")}'
+        - type: honeycomb
+          name: Sockets connectivity map
+          x: '0'
+          y: '9'
+          width: '48'
+          height: '6'
+          fields:
+          - type: STRING
+            name: hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: items.0
+            value: 'Cato: * Socket * connected'
+          - type: STRING
+            name: primary_label
+            value: '{{ITEM.NAME}.regsub("\[(.+)\] Socket (.+) \(", "\1 / \2")}'
+        - type: svggraph
+          name: Connected hosts per site (all sites)
+          x: '0'
+          y: '15'
+          width: '48'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: * Connected hosts'
+      - name: BGP / dynamic routing
+        widgets:
+        - type: honeycomb
+          name: BGP peers state
+          x: '0'
+          y: '0'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: items.0
+            value: 'Cato: * BGP * state'
+          - type: STRING
+            name: primary_label
+            value: '{{ITEM.NAME}.regsub("\[(.+)\] BGP (.+) \(", "\1 / \2")}'
+        - type: problems
+          name: BGP problems
+          x: '24'
+          y: '0'
+          width: '24'
+          height: '6'
+          fields:
+          - type: STRING
+            name: tags.0.tag
+            value: component
+          - type: STRING
+            name: tags.0.value
+            value: bgp
+          - type: INTEGER
+            name: tags.0.operator
+            value: '1'
+        - type: svggraph
+          name: Total dynamic routes learned (received)
+          x: '0'
+          y: '6'
+          width: '48'
+          height: '6'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: * BGP * received routes'
+          - type: INTEGER
+            name: ds.0.aggregate_function
+            value: '5'
+          - type: INTEGER
+            name: ds.0.aggregate_grouping
+            value: '1'
+      - name: SLA & availability
+        widgets:
+        - type: item
+          name: Availability 24h
+          x: '0'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sla.24h
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+          - type: STRING
+            name: value_color
+            value: 1A7C11
+        - type: item
+          name: Availability 7d
+          x: '12'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sla.7d
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: item
+          name: Availability 30d
+          x: '24'
+          y: '0'
+          width: '12'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sla.30d
+          - type: INTEGER
+            name: show.1
+            value: '2'
+          - type: INTEGER
+            name: show.2
+            value: '3'
+        - type: gauge
+          name: Availability 24h (gauge)
+          x: '36'
+          y: '0'
+          width: '12'
+          height: '5'
+          fields:
+          - type: ITEM
+            name: itemid
+            value:
+              host: Cato Networks by HTTP
+              key: cato.sla.24h
+          - type: INTEGER
+            name: min
+            value: '90'
+          - type: INTEGER
+            name: max
+            value: '100'
+        - type: svggraph
+          name: Site availability history (%)
+          x: '0'
+          y: '5'
+          width: '48'
+          height: '7'
+          fields:
+          - type: STRING
+            name: ds.0.color
+            value: 1A7C11
+          - type: STRING
+            name: ds.0.hosts.0
+            value: Cato Networks by HTTP
+          - type: STRING
+            name: ds.0.items.0
+            value: 'Cato: Sites availability (instant %)'
+          - type: INTEGER
+            name: ds.0.fill
+            value: '3'
+    macros:
+    - macro: '{$CATO.API.URL}'
+      value: https://api.catonetworks.com/api/v1/graphql2
+      description: Cato GraphQL endpoint. Add region prefix if your CMA uses one (e.g. api.us1...).
+    - macro: '{$CATO.API.KEY}'
+      value: ''
+      type: SECRET_TEXT
+      description: Cato API key (Resources > Admin/Service API Keys). Restrict it to the Zabbix source IP.
+    - macro: '{$CATO.ACCOUNT.ID}'
+      value: ''
+      description: CMA account ID (number in the CMA URL).
+    - macro: '{$CATO.SNAPSHOT.INTERVAL}'
+      value: 60s
+      description: Polling interval for accountSnapshot.
+    - macro: '{$CATO.METRICS.INTERVAL}'
+      value: 5m
+      description: Polling interval for accountMetrics.
+    - macro: '{$CATO.METRICS.TIMEFRAME}'
+      value: last.PT5M
+      description: TimeFrame for accountMetrics.
+    - macro: '{$CATO.BGP.INTERVAL}'
+      value: 2m
+      description: Polling interval for BGP peer status.
+    - macro: '{$CATO.INVENTORY.INTERVAL}'
+      value: 1h
+      description: Polling interval for entityLookup inventory.
+    - macro: '{$CATO.EVENTS.INTERVAL}'
+      value: 5m
+      description: Polling interval for events summary.
+    - macro: '{$CATO.LOSS.WARN}'
+      value: '3'
+      description: Packet loss warning threshold (%).
+    - macro: '{$CATO.JITTER.WARN}'
+      value: '30'
+      description: Jitter warning threshold (ms).
+    - macro: '{$CATO.RTT.WARN}'
+      value: '150'
+      description: RTT warning threshold (ms).
+    - macro: '{$CATO.SLA.TARGET}'
+      value: '99.9'
+      description: Site availability SLA objective (%).
+    - macro: '{$CATO.SITE.NAME.MATCHES}'
+      value: .*
+      description: Discover sites whose name matches this regex.
+    - macro: '{$CATO.SITE.NAME.NOT_MATCHES}'
+      value: CHANGE_IF_NEEDED
+      description: Exclude sites matching this regex.
+    valuemaps:
+    - uuid: 88e94ee5cb5b4575a559a97a9c8081e5
+      name: Cato connectivity
+      mappings:
+      - value: '0'
+        newvalue: Disconnected
+      - value: '1'
+        newvalue: Connected
+    - uuid: 79a4cb250ce4496cb043503fda48ab61
+      name: Cato BGP state
+      mappings:
+      - value: '0'
+        newvalue: Not established
+      - value: '1'
+        newvalue: Established
