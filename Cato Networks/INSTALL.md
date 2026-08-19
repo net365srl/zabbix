@@ -101,7 +101,7 @@ Paste this into `{$CATO.ACCOUNT.ID}`.
 ## 4. Import the template
 
 1. **Data collection → Templates → Import**.
-2. Choose `templates/template_cato_networks_http.yaml`.
+2. Choose `template_cato_networks_http.yaml`.
 3. Keep the default *Create new* / *Update existing* rules and click **Import**.
 
 The template **Cato Networks by HTTP** appears under **Templates/Network devices**.
