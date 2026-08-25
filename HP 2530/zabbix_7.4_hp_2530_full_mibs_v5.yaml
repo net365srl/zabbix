@@ -1,0 +1,2383 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+  - uuid: 50186a1efa164a0bad5c71028ae29aff
+    name: Templates/Network devices
+  templates:
+  - uuid: bf7d65ccc99d425bbf25a20b20f56320
+    template: HP Aruba 2530 by SNMP
+    name: HP Aruba 2530 by SNMP
+    description: 'Zabbix 7.4 template for HP/Aruba 2530 family switches by SNMP.
+
+
+      Includes standard system polling, IF-MIB interface LLD with HC counters, errors/discards/speed, aggregate inbound/outbound throughput, interface transition alert with 2-hour closure window, standard and HP vendor trap
+      classification, all 42 HP Fault Finder types, HP management login failures on WEB-UI/SSH/TELNET, and unmatched-trap fallback.
+
+
+      MIB source folder /copilot/mib-2530 contains 205 search results. The files explicitly surfaced and considered in this build are:
+
+      - IEEE8021-SECY-MIB-200610020000Z.mib
+
+      - rfc3417.mib
+
+      - rfc3419.mib
+
+      - rfc4673.mib
+
+      - rfc4022.mib
+
+      - rfc4293.mib
+
+      - rfc4836.mib
+
+      - rfc4113.mib
+
+      - rfc4001.mib
+
+      - rfc4292.mib
+
+      - hpicfBfd.mib
+
+      - hpicfVrrpv3.mib
+
+      - hpicfBasic.mib
+
+      - hpicfBridge.mib
+
+      - hpicfGppc.mib
+
+      - hpSwitchErrorMsg.mib
+
+      - hpicfAuth.mib
+
+      - hpicfDeviceMonitor.mib
+
+      - hpicfOid.mib
+
+      - hpicfOspf.mib
+
+      - hpicfDhcpv6Relay.mib
+
+      - hpicfDhcpSnoop.mib
+
+      - hpicfRateLimit.mib
+
+      - hpicfOspfv3.mib
+
+      - HP_Networking_MIBs_Loading_Order.html
+
+      - readme.txt
+
+
+      The template uses numeric standard OIDs for polling and symbolic-or-numeric regex matching for traps. Presence of a MIB file does not prove that every object is implemented by every 2530 firmware/model; unverified chassis-only
+      polling was intentionally excluded to avoid No Such Object errors. Load hpicfOid.mib before other HP vendor MIBs when compiling the source set.
+
+
+      Revision v2: enabled HP global CPU, free-memory, fan, primary/secondary PSU and temperature-state polling. These HP vendor OIDs are intentionally enabled so actual support is determined by the target 2530 model/firmware.
+      Unsupported OIDs may become unsupported in Zabbix and can then be disabled per host/template.'
+    groups:
+    - name: Templates/Network devices
+    items:
+    - uuid: deeda17c56994ad1893d54f3287e42a9
+      name: System name
+      type: SNMP_AGENT
+      key: system.name
+      snmp_oid: 1.3.6.1.2.1.1.5.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: 12f0d2f8ca034583a38669b67f78c271
+      name: System description
+      type: SNMP_AGENT
+      key: system.descr
+      snmp_oid: 1.3.6.1.2.1.1.1.0
+      delay: 1h
+      history: 30d
+      value_type: TEXT
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: aeacb08a18ee4543abce1fb45a90fc4f
+      name: System location
+      type: SNMP_AGENT
+      key: system.location
+      snmp_oid: 1.3.6.1.2.1.1.6.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: d093bd4617754ef0a8213b0ea44de2a7
+      name: System contact
+      type: SNMP_AGENT
+      key: system.contact
+      snmp_oid: 1.3.6.1.2.1.1.4.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: d016d702a56442b4a2cad8dd8b84d77c
+      name: System object ID
+      type: SNMP_AGENT
+      key: system.objectid
+      snmp_oid: 1.3.6.1.2.1.1.2.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: b6913b89c5b34feeb6909a6598614879
+      name: System uptime
+      type: SNMP_AGENT
+      key: system.uptime
+      snmp_oid: 1.3.6.1.2.1.1.3.0
+      delay: 5m
+      history: 30d
+      trends: 365d
+      units: uptime
+      tags:
+      - tag: component
+        value: system
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      triggers:
+      - uuid: d0dfd7bd65a7428ab234cbf73bdfc2ad
+        expression: last(/HP Aruba 2530 by SNMP/system.uptime)<10m
+        name: Switch has been restarted
+        priority: WARNING
+    - uuid: b8b22729d4e0472aaa06ba8e8e87f53c
+      name: SNMP availability check
+      type: SNMP_AGENT
+      key: snmp.check
+      snmp_oid: 1.3.6.1.2.1.1.3.0
+      delay: 1m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: health
+    - uuid: 0d9d72da9ed942ff8cc2bfee71b4e70b
+      name: Total inbound throughput
+      type: CALCULATED
+      key: net.if.total.in
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      trends: 365d
+      units: bps
+      params: sum(last_foreach(//net.if.in[*]))
+      tags:
+      - tag: component
+        value: network
+    - uuid: 1e157d9fbac94768a1712165f495c97a
+      name: Total outbound throughput
+      type: CALCULATED
+      key: net.if.total.out
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      trends: 365d
+      units: bps
+      params: sum(last_foreach(//net.if.out[*]))
+      tags:
+      - tag: component
+        value: network
+    - uuid: 83b38607d7424ffd9b0ceeb1a6554bbe
+      name: Total aggregate throughput
+      type: CALCULATED
+      key: net.if.total
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      trends: 365d
+      units: bps
+      params: last(//net.if.total.in)+last(//net.if.total.out)
+      tags:
+      - tag: component
+        value: network
+    - uuid: c5876437babe415987e680f1d5cf1491
+      name: 'HP IP routing: Total route count'
+      type: SNMP_AGENT
+      key: hp.ip.route.count
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.15.3.1.0
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: vendor-hp
+    - uuid: 1428b292d4e84bc7aa04356b2aa65d8d
+      name: 'HP IP routing: ARP aging time'
+      type: SNMP_AGENT
+      key: hp.ip.arp.aging
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.15.1.6.1.0
+      delay: 1h
+      history: 30d
+      trends: 365d
+      units: m
+      tags:
+      - tag: component
+        value: vendor-hp
+    - uuid: 69a4569838854e258ebc64ce8bf1b8ad
+      name: 'HP SNMP: Authorization notification enabled'
+      type: SNMP_AGENT
+      key: hp.snmp.auth.notify
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.38.1.1.1.3.0
+      delay: 1h
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: vendor-hp
+      valuemap:
+        name: HP-ICF::Enabled status
+    - uuid: 98dfe71cc51449e1bd26ae65acca9118
+      name: 'SNMP traps: Unmatched trap'
+      type: SNMP_TRAP
+      key: snmptrap.fallback
+      history: 30d
+      value_type: LOG
+      trends: '0'
+      description: Receives traps from this switch not matched by another snmptrap[regexp] item.
+      tags:
+      - tag: component
+        value: snmp
+    - uuid: 2ba5626c86524350bdfb62432880a224
+      name: 'SNMP traps: HP 2530 family RMON event'
+      type: SNMP_TRAP
+      key: snmptrap["(hpSwitchJ9772Atrap|hpSwitchJ9773Atrap|hpSwitchJ9774Atrap|hpSwitchJ9775Atrap|hpSwitchJ9776Atrap|hpSwitchJ9777Atrap|hpSwitchJ9778Atrap|hpSwitchJ9779Atrap|hpSwitchJ9780Atrap|hpSwitchJL070Atrap|hpSwitchJ9781Atrap|hpSwitchJ9782Atrap|hpSwitchJ9783Atrap|hpSwitchJ9853Atrap|hpSwitchJ9854Atrap|hpSwitchJ9855Atrap|hpSwitchJ9856Atrap|enterprises\.11\.2\.3\.7\.11\.(136|137|138|139|140|141|142|143|144|145|146|147|148|149|150|151|152)\.0\.2)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-SWITCH-TRAP-MIB model-specific RMON event for HP 2530 family product identifiers J9772A-J9783A, J9853A-J9856A and JL070A.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: 375aa48eb2d74bbf8c9ef0dd280abe3a
+      name: 'SNMP traps: HP chassis sensor state change'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-CHASSIS hpicfSensorTrap. Carries sensor status and description after a chassis sensor state change.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: ee8491eb3c7141b2a55a72f381502b10
+      name: 'SNMP traps: HP Fault Finder'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-FAULT-FINDER-MIB hpicfFaultFinderTrap. Generated when Fault Finder creates a log entry.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: c0adb303f13c4c8f83db3f7808c1c2a1
+      name: 'SNMP traps: HP power supply status change'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-CHASSIS hpicfPowerSupplyStatusTrap. Carries power supply slot and new status.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: 173275decd6240318bf8168269bd5e57
+      name: 'SNMP traps: HP SNMP authorization failure'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfSnmpAuthFail|1\.3\.6\.1\.4\.1\.11\.2\.14\.11\.5\.1\.38\.0\.1)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-SNMP-MIB hpicfSnmpAuthFail. Generated when an SNMP SET fails authorization on a security-related object in the hpicf tree.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: d2861a0267f54cd9803fe83394173006
+      name: 'SNMP trap: coldStart'
+      type: SNMP_TRAP
+      key: snmptrap["(SNMPv2-MIB::coldStart|coldStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.1)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: SNMP entity reinitialized and configuration may have changed.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 013c4a32c5fc4d1ea592a714aab5de85
+        expression: nodata(/HP Aruba 2530 by SNMP/snmptrap["(SNMPv2-MIB::coldStart|coldStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.1)"],2h)=0
+        name: 'SNMP trap: coldStart'
+        priority: WARNING
+        description: Closes automatically after 2h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 29595ea5b44d48d2860a4e384cb03a28
+      name: 'SNMP trap: warmStart'
+      type: SNMP_TRAP
+      key: snmptrap["(SNMPv2-MIB::warmStart|warmStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.2)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: SNMP entity reinitialized with configuration unaltered.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 50835cc94bb0446ab060b98fa2dc1fc8
+        expression: nodata(/HP Aruba 2530 by SNMP/snmptrap["(SNMPv2-MIB::warmStart|warmStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.2)"],2h)=0
+        name: 'SNMP trap: warmStart'
+        priority: WARNING
+        description: Closes automatically after 2h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 3f7eb6e461704c6eb37f84fbea19a60a
+      name: 'SNMP trap: linkDown'
+      type: SNMP_TRAP
+      key: snmptrap["(IF-MIB::linkDown|linkDown|1\.3\.6\.1\.6\.3\.1\.1\.5\.3)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: Standard interface linkDown notification.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 498dd0f169d84fb2b8312167d82a48a9
+      name: 'SNMP trap: linkUp'
+      type: SNMP_TRAP
+      key: snmptrap["(IF-MIB::linkUp|linkUp|1\.3\.6\.1\.6\.3\.1\.1\.5\.4)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: Standard interface linkUp notification.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 54b94614ae0842dc9a88b52b02ab318f
+      name: 'SNMP trap: authenticationFailure'
+      type: SNMP_TRAP
+      key: snmptrap["(SNMPv2-MIB::authenticationFailure|authenticationFailure|1\.3\.6\.1\.6\.3\.1\.1\.5\.5)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: SNMP message was not properly authenticated.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: ec3dee29d8bd487daedd8bf9ab2ff640
+        expression: nodata(/HP Aruba 2530 by SNMP/snmptrap["(SNMPv2-MIB::authenticationFailure|authenticationFailure|1\.3\.6\.1\.6\.3\.1\.1\.5\.5)"],48h)=0
+        name: 'SNMP trap: authenticationFailure'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: aa5b4c4918c84d99894a0abd670d8e88
+      name: 'SNMP trap: HP sensor bad'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(bad\(2\)|INTEGER: 2)|bad\(2\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP chassis sensor changed to bad.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 52cbb28d8ee54596ba9df7ef7e8fa117
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(bad\(2\)|INTEGER: 2)|bad\(2\))"],48h)=0'
+        name: 'SNMP trap: HP sensor bad'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 86f9f332bd2840e096c60aacd1163180
+      name: 'SNMP trap: HP sensor warning'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(warning\(3\)|INTEGER: 3)|warning\(3\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP chassis sensor changed to warning.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: dceff9a013f2464eb0937f58af01fad0
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(warning\(3\)|INTEGER: 3)|warning\(3\))"],48h)=0'
+        name: 'SNMP trap: HP sensor warning'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 167a8c55a24248e99e35ba06029f48bd
+      name: 'SNMP trap: HP power supply faulted'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(faulted\(4\)|INTEGER: 4)|faulted\(4\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP internal power supply changed to faulted.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: e9a3ca3f05ac4397b564addcf7156ed7
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(faulted\(4\)|INTEGER: 4)|faulted\(4\))"],48h)=0'
+        name: 'SNMP trap: HP power supply faulted'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 1adf8c75c8434909a6616c1e8955bf77
+      name: 'SNMP trap: HP power supply removed'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(removed\(3\)|INTEGER: 3)|removed\(3\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP internal power supply was removed.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 2d5fa5029f524f639405498b5d8f51eb
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(removed\(3\)|INTEGER: 3)|removed\(3\))"],48h)=0'
+        name: 'SNMP trap: HP power supply removed'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 293115508a8740c796587f50810f38af
+      name: 'SNMP trap: HP Fault Finder - Bad interface driver'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badDriver\(1\)|INTEGER: 1)|badDriver\(1\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType badDriver(1).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 625bdb5bbce24d1eae2d3dedbd32fd18
+      name: 'SNMP trap: HP Fault Finder - Bad transceiver'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badXcvr\(2\)|INTEGER: 2)|badXcvr\(2\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType badXcvr(2).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 66e3c3acf320421184a7e11846894a3b
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badXcvr\(2\)|INTEGER: 2)|badXcvr\(2\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Bad transceiver'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: f51311eee9364955843aa7053a45a2c7
+      name: 'SNMP trap: HP Fault Finder - Bad cable'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badCable\(3\)|INTEGER: 3)|badCable\(3\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType badCable(3).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: bbff120415ee4729a4714f98c531ddda
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badCable\(3\)|INTEGER: 3)|badCable\(3\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Bad cable'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 43027fc952234e6eab90b874ffe0fadb
+      name: 'SNMP trap: HP Fault Finder - Cable too long'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(tooLongCable\(4\)|INTEGER: 4)|tooLongCable\(4\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType tooLongCable(4).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 4b77fc184eed4d97bfc2a93a88256e2d
+      name: 'SNMP trap: HP Fault Finder - Bandwidth threshold exceeded'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(overBandwidth\(5\)|INTEGER: 5)|overBandwidth\(5\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType overBandwidth(5).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: ce0ab6bc4d7c449d831ab48fd7e422e4
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(overBandwidth\(5\)|INTEGER: 5)|overBandwidth\(5\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Bandwidth threshold exceeded'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: d4931381d6274cd6b7403407b4f7a1a1
+      name: 'SNMP trap: HP Fault Finder - Broadcast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStorm\(6\)|INTEGER: 6)|bcastStorm\(6\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType bcastStorm(6).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: f84ec1be980d4a098fd8e9e37c6519ae
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStorm\(6\)|INTEGER: 6)|bcastStorm\(6\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Broadcast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 5e95f540138c4c6e94c7dfac62566f58
+      name: 'SNMP trap: HP Fault Finder - Network partition'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(partition\(7\)|INTEGER: 7)|partition\(7\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType partition(7).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: f83c8bbda7f04ca99ab0467eedfd9391
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(partition\(7\)|INTEGER: 7)|partition\(7\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Network partition'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: db031fba73f34456acaf3aa6520a9142
+      name: 'SNMP trap: HP Fault Finder - Misconfigured SQE'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(misconfiguredSQE\(8\)|INTEGER: 8)|misconfiguredSQE\(8\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType misconfiguredSQE(8).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 8b55af657f0944bba77c5bea4f160f42
+      name: 'SNMP trap: HP Fault Finder - Polarity reversal'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(polarityReversal\(9\)|INTEGER: 9)|polarityReversal\(9\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType polarityReversal(9).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 45e254ec1d3d42c9b364b5ffc931d7db
+      name: 'SNMP trap: HP Fault Finder - Network loop'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(networkLoop\(10\)|INTEGER: 10)|networkLoop\(10\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType networkLoop(10).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 8dcaae6f0ce046c280fee309355acd00
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(networkLoop\(10\)|INTEGER: 10)|networkLoop\(10\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Network loop'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 3cb0315162154db283848a2df6711188
+      name: 'SNMP trap: HP Fault Finder - Loss of link'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfLink\(11\)|INTEGER: 11)|lossOfLink\(11\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType lossOfLink(11).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 023642df380240bd802ab0831bee2c98
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfLink\(11\)|INTEGER: 11)|lossOfLink\(11\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Loss of link'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 14244534005441dab90c445617f3a592
+      name: 'SNMP trap: HP Fault Finder - Port security violation'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSecurityViolation\(12\)|INTEGER: 12)|portSecurityViolation\(12\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType portSecurityViolation(12).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 8facf7193991442ba0017512e0b1b46f
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSecurityViolation\(12\)|INTEGER: 12)|portSecurityViolation\(12\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Port security violation'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: e50d965472ee4ba7b592c05cb6d97d59
+      name: 'SNMP trap: HP Fault Finder - Backup link transition'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(backupLinkTransition\(13\)|INTEGER: 13)|backupLinkTransition\(13\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType backupLinkTransition(13).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 24be7bed3dbe495aa470f1a5603ea4e0
+      name: 'SNMP trap: HP Fault Finder - Meshing fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(meshingFault\(14\)|INTEGER: 14)|meshingFault\(14\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType meshingFault(14).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 2d3c5895ce21468ba080ea8773c4db94
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(meshingFault\(14\)|INTEGER: 14)|meshingFault\(14\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Meshing fault'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 07064da485a94f3689eeb77daa4ef762
+      name: 'SNMP trap: HP Fault Finder - Fan fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(fanFault\(15\)|INTEGER: 15)|fanFault\(15\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType fanFault(15).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: a1526427fa5849f69c6a35bd3d0705d2
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(fanFault\(15\)|INTEGER: 15)|fanFault\(15\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Fan fault'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 09c7efd349e24761b9fdef95797265b5
+      name: 'SNMP trap: HP Fault Finder - Redundant power supply fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(rpsFault\(16\)|INTEGER: 16)|rpsFault\(16\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType rpsFault(16).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 7a2f957fef03486b800db40f3506eb91
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(rpsFault\(16\)|INTEGER: 16)|rpsFault\(16\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Redundant power supply fault'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 261444629d3946e1a5086f5d7a41922a
+      name: 'SNMP trap: HP Fault Finder - Stuck at 10 Mb'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(stuck10MbFault\(17\)|INTEGER: 17)|stuck10MbFault\(17\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType stuck10MbFault(17).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 07bb3cd88b974b64b13f768122854ceb
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(stuck10MbFault\(17\)|INTEGER: 17)|stuck10MbFault\(17\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Stuck at 10 Mb'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 4f14aaa244a34020b9f060a5ef3918a4
+      name: 'SNMP trap: HP Fault Finder - Loss of stack member'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfStackMember\(18\)|INTEGER: 18)|lossOfStackMember\(18\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType lossOfStackMember(18).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 9382df7b839d47919d305db48aa51ed3
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfStackMember\(18\)|INTEGER: 18)|lossOfStackMember\(18\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Loss of stack member'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: b7fb09b7228b448799c1452d55ff234a
+      name: 'SNMP trap: HP Fault Finder - Hot-swap reboot'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(hotSwapReboot\(19\)|INTEGER: 19)|hotSwapReboot\(19\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType hotSwapReboot(19).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: a301c492156042eebd2a5bc5a6d88e95
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(hotSwapReboot\(19\)|INTEGER: 19)|hotSwapReboot\(19\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Hot-swap reboot'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 149a2b9729734ec0b19ae913f6a332a1
+      name: 'SNMP trap: HP Fault Finder - Duplex mismatch HDX'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchHDX\(20\)|INTEGER: 20)|duplexMismatchHDX\(20\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType duplexMismatchHDX(20).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 88aa2dcef6294395909eb38f2ed140f5
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchHDX\(20\)|INTEGER: 20)|duplexMismatchHDX\(20\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Duplex mismatch HDX'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 7f6515290b7f49ee9e6d9074273974b6
+      name: 'SNMP trap: HP Fault Finder - Duplex mismatch FDX'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchFDX\(21\)|INTEGER: 21)|duplexMismatchFDX\(21\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType duplexMismatchFDX(21).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 07d7f26afc4444b096136b90e8f29567
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchFDX\(21\)|INTEGER: 21)|duplexMismatchFDX\(21\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Duplex mismatch FDX'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 93fb0754d86840319000446b266a9ed7
+      name: 'SNMP trap: HP Fault Finder - Flow-control/jumbo fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(flowcntlJumbosFault\(22\)|INTEGER: 22)|flowcntlJumbosFault\(22\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType flowcntlJumbosFault(22).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 17f239cb3c814259816fe7a905f92a86
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(flowcntlJumbosFault\(22\)|INTEGER: 22)|flowcntlJumbosFault\(22\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Flow-control/jumbo fault'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: dff0f5d7ea1e4701858c77f2ff01fcdb
+      name: 'SNMP trap: HP Fault Finder - Port self-test failure'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSelftestFailure\(23\)|INTEGER: 23)|portSelftestFailure\(23\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType portSelftestFailure(23).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 7b62df6c5d674f14a56001e01cdd5851
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSelftestFailure\(23\)|INTEGER: 23)|portSelftestFailure\(23\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Port self-test failure'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: fd306d124bea42818365f85f69d5244a
+      name: 'SNMP trap: HP Fault Finder - Transceiver unidentified'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnidentified\(24\)|INTEGER: 24)|xcvrUnidentified\(24\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrUnidentified(24).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 8b9f14cae3b0480fa1cfb871344fd447
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnidentified\(24\)|INTEGER: 24)|xcvrUnidentified\(24\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver unidentified'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 254af92134384f50abd20cc57a2446b4
+      name: 'SNMP trap: HP Fault Finder - Transceiver unsupported'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnsupported\(25\)|INTEGER: 25)|xcvrUnsupported\(25\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrUnsupported(25).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 88705fe943b941f79fdcb6acea2edbe8
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnsupported\(25\)|INTEGER: 25)|xcvrUnsupported\(25\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver unsupported'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 7fd008234f804de78d9437b1426e00dd
+      name: 'SNMP trap: HP Fault Finder - Connection-rate filter notification'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfNotify\(26\)|INTEGER: 26)|crfNotify\(26\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType crfNotify(26).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 41697221dcd84867b403989781d97a3e
+      name: 'SNMP trap: HP Fault Finder - Connection-rate filter throttled'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfThrottled\(27\)|INTEGER: 27)|crfThrottled\(27\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType crfThrottled(27).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 9ad88f963fde433487a0dd3f331c9020
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfThrottled\(27\)|INTEGER: 27)|crfThrottled\(27\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Connection-rate filter throttled'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 04bb4043b3e04be4836cced0bca6f32d
+      name: 'SNMP trap: HP Fault Finder - Connection-rate filter blocked'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfBlocked\(28\)|INTEGER: 28)|crfBlocked\(28\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType crfBlocked(28).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 01293e3a02b045acb51b26f0a9f71dc3
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfBlocked\(28\)|INTEGER: 28)|crfBlocked\(28\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Connection-rate filter blocked'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: a22bb306a3174189ad9b5db46e2f69a9
+      name: 'SNMP trap: HP Fault Finder - Transceiver not yet supported'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotYetSupported\(29\)|INTEGER: 29)|xcvrNotYetSupported\(29\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrNotYetSupported(29).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: fad0a9bb2f0b409fabc8885c2508ae7d
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotYetSupported\(29\)|INTEGER: 29)|xcvrNotYetSupported\(29\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver not yet supported'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 48809e29c8734b8ca1f56c74bd42c152
+      name: 'SNMP trap: HP Fault Finder - Transceiver B-revision only'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrBRevOnly\(30\)|INTEGER: 30)|xcvrBRevOnly\(30\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrBRevOnly(30).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 7cce769b160d4fe6b6acf305336cb7a1
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrBRevOnly\(30\)|INTEGER: 30)|xcvrBRevOnly\(30\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver B-revision only'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 98caeef5268446fc92cb558703186a8f
+      name: 'SNMP trap: HP Fault Finder - Transceiver unsupported on port'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotSupportedOnPort\(31\)|INTEGER: 31)|xcvrNotSupportedOnPort\(31\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrNotSupportedOnPort(31).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: eb8098ebade94e3894c3d9c99832547d
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotSupportedOnPort\(31\)|INTEGER: 31)|xcvrNotSupportedOnPort\(31\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver unsupported on port'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 1ccdbe5854d14e83bd3490c5cb9cc6ba
+      name: 'SNMP trap: HP Fault Finder - PHY read failure'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(phyReadFailure\(32\)|INTEGER: 32)|phyReadFailure\(32\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType phyReadFailure(32).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 1ed17cb0e9ef45c6a49d7400142eb979
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(phyReadFailure\(32\)|INTEGER: 32)|phyReadFailure\(32\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - PHY read failure'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 28e2ea2d421243eab40169149c79f687
+      name: 'SNMP trap: HP Fault Finder - Link flap'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlap\(33\)|INTEGER: 33)|linkFlap\(33\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType linkFlap(33).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: e48fc6154b2f46589d16346cf4ff0d82
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlap\(33\)|INTEGER: 33)|linkFlap\(33\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Link flap'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 3c9dc018fe074d209a3a48e13b3747a6
+      name: 'SNMP trap: HP Fault Finder - Intel 82566DM port protection'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(intel82566dmportprotect\(34\)|INTEGER: 34)|intel82566dmportprotect\(34\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType intel82566dmportprotect(34).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 7e3194238be04b66bded13068fb6ba72
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(intel82566dmportprotect\(34\)|INTEGER: 34)|intel82566dmportprotect\(34\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Intel 82566DM port protection'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 0cdca206d0fa4c1392bc454d6f3c5ef4
+      name: 'SNMP trap: HP Fault Finder - Transceiver quantity exceeded'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrExceedQty\(35\)|INTEGER: 35)|xcvrExceedQty\(35\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrExceedQty(35).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 962d6ecc2b1a4b4c83736af90aea2ed7
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrExceedQty\(35\)|INTEGER: 35)|xcvrExceedQty\(35\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver quantity exceeded'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 7dec6dc0b57c4ba58210f4dd798511af
+      name: 'SNMP trap: HP Fault Finder - Cloned transceiver'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrClone\(36\)|INTEGER: 36)|xcvrClone\(36\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrClone(36).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 3c92250f57af43f09d81a12771aaad88
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrClone\(36\)|INTEGER: 36)|xcvrClone\(36\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Cloned transceiver'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 7cb8f648280f491ea57215e1d784c367
+      name: 'SNMP trap: HP Fault Finder - Cloned transceiver reminder'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrCloneReminder\(37\)|INTEGER: 37)|xcvrCloneReminder\(37\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrCloneReminder(37).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 986ce414df0f4f46b9bb8b6a47a32914
+      name: 'SNMP trap: HP Fault Finder - Per-port broadcast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStormPerPort\(38\)|INTEGER: 38)|bcastStormPerPort\(38\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType bcastStormPerPort(38).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 556e715843154f6ca97f34867589a2c3
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStormPerPort\(38\)|INTEGER: 38)|bcastStormPerPort\(38\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Per-port broadcast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 43b42901388945e190daf53913e7855d
+      name: 'SNMP trap: HP Fault Finder - Per-port link flap'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlapPerPort\(39\)|INTEGER: 39)|linkFlapPerPort\(39\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType linkFlapPerPort(39).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 6f13fa9a5c1d4d9090d4a2783abf772f
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlapPerPort\(39\)|INTEGER: 39)|linkFlapPerPort\(39\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Per-port link flap'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: c716e4fd09664aeda3cfead04135621a
+      name: 'SNMP trap: HP Fault Finder - Non-standard receive preamble'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(rxNonStdPreamble\(40\)|INTEGER: 40)|rxNonStdPreamble\(40\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType rxNonStdPreamble(40).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 758ffb5310024abba354cdc5b1cdaad8
+      name: 'SNMP trap: HP Fault Finder - Multicast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStorm\(41\)|INTEGER: 41)|mcastStorm\(41\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType mcastStorm(41).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: e3c7676bd52a4b42a2e596b577e07935
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStorm\(41\)|INTEGER: 41)|mcastStorm\(41\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Multicast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: db822b546df7401b931637fbe844831b
+      name: 'SNMP trap: HP Fault Finder - Per-port multicast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStormPerPort\(42\)|INTEGER: 42)|mcastStormPerPort\(42\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType mcastStormPerPort(42).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 899a68cdac1a49db963c8539b7f58b80
+        expression: 'nodata(/HP Aruba 2530 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStormPerPort\(42\)|INTEGER: 42)|mcastStormPerPort\(42\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Per-port multicast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: cf3c7f65f47c445eb5956cb6dc5d8733
+      name: 'SNMP trap: HP management authentication failure'
+      type: SNMP_TRAP
+      key: snmptrap["(?i)auth:\s*Invalid user name/password on\s+(WEB-UI|SSH|TELNET)\s+session"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: Matches HP 2530 family RMON event text for invalid management login credentials on WEB-UI, SSH, or TELNET sessions. The matching is case-insensitive and tolerates variable whitespace.
+      triggers:
+      - uuid: 200ae24815f94633b2df5e9a0caf855b
+        expression: nodata(/HP Aruba 2530 by SNMP/snmptrap["(?i)auth:\s*Invalid user name/password on\s+(WEB-UI|SSH|TELNET)\s+session"],48h)=0
+        name: HP management authentication failure detected
+        priority: AVERAGE
+        description: A failed login was reported for WEB-UI, SSH, or TELNET. The problem closes automatically after 48 hours without another matching trap.
+        tags:
+        - tag: scope
+          value: security
+        - tag: component
+          value: management-access
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: security
+      - tag: event
+        value: authentication
+    - uuid: 0d181bae4df94e94b2f9d02ff568ea97
+      name: 'HP 2530: CPU utilization'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.9.6.1.0
+      key: hp.cpu.util
+      delay: 1m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: hardware
+      - tag: mib
+        value: HP vendor
+      units: '%'
+      description: Global CPU utilization scalar from HP STATISTICS-MIB.
+      triggers:
+      - uuid: 8426f705d9824cf6b5a2db6088214c1b
+        expression: avg(/HP Aruba 2530 by SNMP/hp.cpu.util,5m)>{$HP.CPU.HIGH}
+        name: 'HP 2530: High CPU utilization'
+        priority: WARNING
+        description: Average CPU utilization exceeded the configured threshold for 5 minutes.
+        tags:
+        - tag: scope
+          value: performance
+    - uuid: d6cb69053564468c89f0e33eb5690004
+      name: 'HP 2530: Free memory'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.1.2.1.1.1.6.1
+      key: hp.memory.free
+      delay: 1m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: hardware
+      - tag: mib
+        value: HP vendor
+      units: B
+      description: Free memory in bytes from HP vendor memory table.
+    - uuid: a173e9ddfebd4793b362f9d06693f64d
+      name: 'HP 2530: Fan state'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.1.2.6.1.4.1
+      key: hp.health.fan
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: hardware
+      - tag: mib
+        value: HP vendor
+      valuemap:
+        name: HP-ICF::Sensor status
+      description: HP-ICF-CHASSIS sensor status instance.
+    - uuid: 1bf5705cbb914de18953fa19a7ccab79
+      name: 'HP 2530: Primary power supply state'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.1.2.6.1.4.2
+      key: hp.health.psu.primary
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: hardware
+      - tag: mib
+        value: HP vendor
+      valuemap:
+        name: HP-ICF::Sensor status
+      description: HP-ICF-CHASSIS sensor status instance.
+    - uuid: be23fe27558946c7be1bf26e19081924
+      name: 'HP 2530: Secondary power supply state'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.1.2.6.1.4.3
+      key: hp.health.psu.secondary
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: hardware
+      - tag: mib
+        value: HP vendor
+      valuemap:
+        name: HP-ICF::Sensor status
+      description: HP-ICF-CHASSIS sensor status instance.
+    - uuid: 11b51d00a3314614aaf904aa96c8f9a8
+      name: 'HP 2530: Temperature state'
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.1.2.6.1.4.4
+      key: hp.health.temperature
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: hardware
+      - tag: mib
+        value: HP vendor
+      valuemap:
+        name: HP-ICF::Sensor status
+      description: HP-ICF-CHASSIS sensor status instance.
+    discovery_rules:
+    - uuid: c6daa847b04745c4ac694100f9c819ac
+      name: Network interface discovery
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#IFNAME},1.3.6.1.2.1.31.1.1.1.1,{#IFALIAS},1.3.6.1.2.1.31.1.1.1.18]
+      key: net.if.discovery
+      delay: 1h
+      item_prototypes:
+      - uuid: 905aceea8bd8478abb4c2a8dce18e7ab
+        name: 'Interface {#IFNAME}: Operational status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}
+        key: net.if.status[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        valuemap:
+          name: IF-MIB::ifOperStatus
+        trigger_prototypes:
+        - uuid: 9c851843c8c349ac8cf01c5af8a53ed0
+          expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/HP Aruba 2530 by SNMP/net.if.status[{#SNMPINDEX}])<>1 and count(/HP Aruba 2530 by SNMP/net.if.status[{#SNMPINDEX}],2h,"eq",1)>0'
+          name: 'Interface {#IFNAME}: Link down'
+          priority: INFO
+          description: Information event generated only after a transition from up to a non-up state. If the interface stays down, the problem closes automatically when the last up sample leaves the 2-hour evaluation window.
+            If the interface returns up earlier, it closes immediately.
+      - uuid: ca2e0f0ed64b4811aedf798fc1ca4177
+        name: 'Interface {#IFNAME}: Inbound traffic'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}
+        key: net.if.in[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: bps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+      - uuid: edaf976675504cb18c562c5bf136a333
+        name: 'Interface {#IFNAME}: Outbound traffic'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}
+        key: net.if.out[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: bps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+      - uuid: a5156c29aef5422abca7ae3ebe08db29
+        name: 'Interface {#IFNAME}: Inbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}
+        key: net.if.in.errors[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: 3635b5e2a59a4088b99976c1218c7ee2
+        name: 'Interface {#IFNAME}: Outbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}
+        key: net.if.out.errors[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: 3324323f628c44df9e343a3b89cf7de2
+        name: 'Interface {#IFNAME}: Inbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}
+        key: net.if.in.discards[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: ad44b55fc1e8439cad42741025fdd29b
+        name: 'Interface {#IFNAME}: Outbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}
+        key: net.if.out.discards[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: 2cf21232216440b98bbb8731ef42ea51
+        name: 'Interface {#IFNAME}: Speed'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.15.{#SNMPINDEX}
+        key: net.if.speed[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: bps
+        preprocessing:
+        - type: MULTIPLIER
+          parameters:
+          - '1000000'
+      - uuid: 7da4129fd3f644e78d96a7fb03e4b8e2
+        name: 'Interface {#IFNAME}: Alias'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.18.{#SNMPINDEX}
+        key: net.if.alias[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: CHAR
+      graph_prototypes:
+      - uuid: 51f116e2648f4b4a976f9b39a8e7fcb4
+        name: 'Interface {#IFNAME}: Bandwidth'
+        graph_items:
+        - color: 1A7C11
+          item:
+            host: HP Aruba 2530 by SNMP
+            key: net.if.in[{#SNMPINDEX}]
+        - sortorder: '1'
+          color: 2774A4
+          item:
+            host: HP Aruba 2530 by SNMP
+            key: net.if.out[{#SNMPINDEX}]
+    macros:
+    - macro: '{$IFCONTROL}'
+      value: '1'
+    - macro: '{$HP.CPU.HIGH}'
+      value: '85'
+      description: High CPU threshold in percent.
+    dashboards:
+    - uuid: f9f5b9a4888b4b5f80eea5f952064831
+      name: HP 2530 - Operations
+      display_period: '3600'
+      auto_start: 'YES'
+      pages:
+      - name: Overview
+        widgets:
+        - type: item
+          name: System name
+          x: '0'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: system.name
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: V3F9S
+        - type: item
+          name: Location
+          x: '18'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: system.location
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 5LAN3
+        - type: item
+          name: Uptime
+          x: '36'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: system.uptime
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: SODDY
+        - type: item
+          name: SNMP availability
+          x: '54'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: snmp.check
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 11Q73
+        - type: item
+          name: CPU utilization
+          x: '0'
+          y: '3'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.cpu.util
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: KFBIW
+        - type: item
+          name: Free memory
+          x: '18'
+          y: '3'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.memory.free
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: FSDVO
+        - type: item
+          name: Fan state
+          x: '36'
+          y: '3'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.fan
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: CLWNJ
+        - type: item
+          name: Temperature state
+          x: '54'
+          y: '3'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.temperature
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 249SO
+        - type: item
+          name: PSU primary
+          x: '0'
+          y: '6'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.psu.primary
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: TIUCH
+        - type: item
+          name: PSU secondary
+          x: '18'
+          y: '6'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.psu.secondary
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: S50W4
+        - type: item
+          name: Active routes
+          x: '36'
+          y: '6'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.ip.route.count
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 31GRE
+        - type: item
+          name: ARP aging
+          x: '54'
+          y: '6'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.ip.arp.aging
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: OMWMV
+        - type: graph
+          name: Aggregate throughput (in/out)
+          x: '0'
+          y: '9'
+          width: '72'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: net.if.total.in
+          - type: STRING
+            name: color.0
+            value: 1A7C11
+          - type: ITEM
+            name: itemid.1
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: net.if.total.out
+          - type: STRING
+            name: color.1
+            value: 2774A4
+          - type: STRING
+            name: reference
+            value: U43X6
+        - type: problems
+          name: Current problems
+          x: '0'
+          y: '15'
+          width: '72'
+          height: '7'
+          fields:
+          - type: INTEGER
+            name: show_tags
+            value: '3'
+          - type: INTEGER
+            name: sort_triggers
+            value: '16'
+          - type: STRING
+            name: reference
+            value: TCCHM
+      - name: Performance
+        widgets:
+        - type: graph
+          name: CPU utilization
+          x: '0'
+          y: '0'
+          width: '36'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.cpu.util
+          - type: STRING
+            name: color.0
+            value: E65660
+          - type: STRING
+            name: reference
+            value: HHG6M
+        - type: graph
+          name: Free memory
+          x: '36'
+          y: '0'
+          width: '36'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.memory.free
+          - type: STRING
+            name: color.0
+            value: 1A7C11
+          - type: STRING
+            name: reference
+            value: Q73KH
+        - type: graphprototype
+          name: Bandwidth per interface (in/out)
+          x: '0'
+          y: '6'
+          width: '72'
+          height: '10'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '2'
+          - type: GRAPH_PROTOTYPE
+            name: graphid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              name: 'Interface {#IFNAME}: Bandwidth'
+          - type: INTEGER
+            name: columns
+            value: '3'
+          - type: INTEGER
+            name: rows
+            value: '3'
+          - type: STRING
+            name: reference
+            value: ILOD7
+        - type: graphprototype
+          name: Inbound errors per interface
+          x: '0'
+          y: '16'
+          width: '72'
+          height: '8'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '3'
+          - type: ITEM_PROTOTYPE
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: net.if.in.errors[{#SNMPINDEX}]
+          - type: INTEGER
+            name: columns
+            value: '3'
+          - type: INTEGER
+            name: rows
+            value: '2'
+          - type: STRING
+            name: reference
+            value: AUXJO
+      - name: Environment & health
+        widgets:
+        - type: item
+          name: Fan state
+          x: '0'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.fan
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 9IRAZ
+        - type: item
+          name: PSU primary
+          x: '18'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.psu.primary
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: CUP4G
+        - type: item
+          name: PSU secondary
+          x: '36'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.psu.secondary
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 8A3M1
+        - type: item
+          name: Temperature state
+          x: '54'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.health.temperature
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 21ZUB
+        - type: graph
+          name: CPU trend
+          x: '0'
+          y: '3'
+          width: '36'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.cpu.util
+          - type: STRING
+            name: color.0
+            value: E65660
+          - type: STRING
+            name: reference
+            value: WGHQ8
+        - type: graph
+          name: Free memory trend
+          x: '36'
+          y: '3'
+          width: '36'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: hp.memory.free
+          - type: STRING
+            name: color.0
+            value: 1A7C11
+          - type: STRING
+            name: reference
+            value: 6NE4B
+        - type: item
+          name: System description
+          x: '0'
+          y: '9'
+          width: '72'
+          height: '4'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP Aruba 2530 by SNMP
+              key: system.descr
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '12'
+          - type: STRING
+            name: reference
+            value: VT5PA
+    valuemaps:
+    - uuid: 1902ac0967ce4c31951c0daa97d4d621
+      name: IF-MIB::ifOperStatus
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: notPresent
+      - value: '7'
+        newvalue: lowerLayerDown
+    - uuid: b3754085c1544d719b201db077c037df
+      name: HP-ICF::HA failure reason
+      mappings:
+      - value: '1'
+        newvalue: noRedundantModule
+      - value: '2'
+        newvalue: noFailure
+      - value: '3'
+        newvalue: unknownReason
+      - value: '4'
+        newvalue: mismatchOS
+      - value: '5'
+        newvalue: failedSelftest
+      - value: '6'
+        newvalue: communicationFailure
+      - value: '7'
+        newvalue: redundancyDisable
+    - uuid: 740db6672d5045b09b0d30a046df6287
+      name: HP-ICF::Enabled status
+      mappings:
+      - value: '1'
+        newvalue: enabled
+      - value: '2'
+        newvalue: disabled
+    - uuid: 2a83c40febbf409d92f3ef31ade3ad92
+      name: HP-ICF::Sensor status
+      mappings:
+      - value: '1'
+        newvalue: unknown/invalid
+      - value: '2'
+        newvalue: bad
+      - value: '3'
+        newvalue: warning
+      - value: '4'
+        newvalue: good
+      - value: '5'
+        newvalue: notPresent
+    tags:
+    - tag: class
+      value: network
+    - tag: target
+      value: hp
+    - tag: target
+      value: hp-enterprise
