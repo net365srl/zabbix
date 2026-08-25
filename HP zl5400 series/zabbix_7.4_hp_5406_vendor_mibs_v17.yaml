@@ -1,0 +1,2172 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+  - uuid: e6dea3ff750d4f7e92730ef2b227d1be
+    name: Templates/Network devices
+  templates:
+  - uuid: 461398696d92438a90a3abc9396c7cab
+    template: HP ProCurve 5406 by SNMP
+    name: HP ProCurve 5406 by SNMP
+    description: 'Zabbix 7.4 SNMP template for HP ProCurve 5406 with IF-MIB and HP vendor-specific monitoring.
+
+
+      Compatibility note: HP OSPF reference-cost polling is disabled by default because the target J8697A returned No Such Object. Temperature items named "HP J8697A Switch temperature sensor..." are not created by this template;
+      they originate from another linked template or pre-existing host discovery and should be disabled/unlinked there on this agent. Chassis health remains covered by hpicfSensorTrap and Fault Finder trap items.'
+    groups:
+    - name: Templates/Network devices
+    items:
+    - uuid: 9695ce9e8d774a81bd6da70fe36fb805
+      name: System name
+      type: SNMP_AGENT
+      key: system.name
+      snmp_oid: 1.3.6.1.2.1.1.5.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: c23807355e854536b75d7b0ce825f18c
+      name: System description
+      type: SNMP_AGENT
+      key: system.descr
+      snmp_oid: 1.3.6.1.2.1.1.1.0
+      delay: 1h
+      history: 30d
+      value_type: TEXT
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: 3f752a75797244a9808e1f9e831e32d9
+      name: System location
+      type: SNMP_AGENT
+      key: system.location
+      snmp_oid: 1.3.6.1.2.1.1.6.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: 2ae8df80ac044dec8f360fea0404c221
+      name: System contact
+      type: SNMP_AGENT
+      key: system.contact
+      snmp_oid: 1.3.6.1.2.1.1.4.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: cbc67e7f629f4dd3bb6604b8136f4fa3
+      name: System object ID
+      type: SNMP_AGENT
+      key: system.objectid
+      snmp_oid: 1.3.6.1.2.1.1.2.0
+      delay: 1h
+      history: 30d
+      value_type: CHAR
+      trends: 365d
+      tags:
+      - tag: component
+        value: system
+    - uuid: 5ba49fc4756f4b4eb0795cfdd130908b
+      name: System uptime
+      type: SNMP_AGENT
+      key: system.uptime
+      snmp_oid: 1.3.6.1.2.1.1.3.0
+      delay: 5m
+      history: 30d
+      trends: 365d
+      units: uptime
+      tags:
+      - tag: component
+        value: system
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      triggers:
+      - uuid: 16f89d4c123645f09addc39dc045bdaf
+        expression: last(/HP ProCurve 5406 by SNMP/system.uptime)<10m
+        name: Switch has been restarted
+        priority: WARNING
+    - uuid: 87a25c0844b945e9abe16b243123fd1e
+      name: SNMP availability check
+      type: SNMP_AGENT
+      key: snmp.check
+      snmp_oid: 1.3.6.1.2.1.1.3.0
+      delay: 1m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: health
+    - uuid: 723a47bb21f24b0490e6c3a1fc93bbe3
+      name: Total inbound throughput
+      type: CALCULATED
+      key: net.if.total.in
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      trends: 365d
+      units: bps
+      params: sum(last_foreach(//net.if.in[*]))
+      tags:
+      - tag: component
+        value: network
+    - uuid: 7cfaffde99be4d0ab79e258f9a4be0b0
+      name: Total outbound throughput
+      type: CALCULATED
+      key: net.if.total.out
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      trends: 365d
+      units: bps
+      params: sum(last_foreach(//net.if.out[*]))
+      tags:
+      - tag: component
+        value: network
+    - uuid: fa2b684ee3224da3bec703af06480983
+      name: Total aggregate throughput
+      type: CALCULATED
+      key: net.if.total
+      delay: 1m
+      history: 30d
+      value_type: FLOAT
+      trends: 365d
+      units: bps
+      params: last(//net.if.total.in)+last(//net.if.total.out)
+      tags:
+      - tag: component
+        value: network
+    - uuid: 2974e3edb5844fb0a614d3926c4dbbf8
+      name: 'HP HA: Redundancy failure reason'
+      type: SNMP_AGENT
+      key: hp.ha.failure.reason
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.1.11.2.1.0
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: vendor-hp
+      valuemap:
+        name: HP-ICF::HA failure reason
+    - uuid: 9dc4870ff983420b93058b18eb2033fc
+      name: 'HP HA: Management module failovers'
+      type: SNMP_AGENT
+      key: hp.ha.failovers
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.1.11.2.2.0
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: vendor-hp
+      triggers:
+      - uuid: 41c66a02816849279bfad003e7bd2ec8
+        expression: change(/HP ProCurve 5406 by SNMP/hp.ha.failovers)>0
+        name: 'HP HA: Management module failover detected'
+        priority: WARNING
+    - uuid: 6e11955808fc43b3b82d7b33af580dd0
+      name: 'HP HA: Last failover time'
+      type: SNMP_AGENT
+      key: hp.ha.last.failover
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.1.11.2.3.0
+      delay: 5m
+      history: 30d
+      trends: 365d
+      units: uptime
+      tags:
+      - tag: component
+        value: vendor-hp
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+    - uuid: f069bf506ae1423484ac04a2d45507db
+      name: 'HP IP routing: Total route count'
+      type: SNMP_AGENT
+      key: hp.ip.route.count
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.15.3.1.0
+      delay: 5m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: vendor-hp
+    - uuid: bfb2307009914992999a2bc072eb539c
+      name: 'HP IP routing: ARP aging time'
+      type: SNMP_AGENT
+      key: hp.ip.arp.aging
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.15.1.6.1.0
+      delay: 1h
+      history: 30d
+      trends: 365d
+      units: m
+      tags:
+      - tag: component
+        value: vendor-hp
+    - uuid: 4d0731bb633d4ca58df249afd03c16ca
+      name: 'HP OSPF: Reference cost'
+      type: SNMP_AGENT
+      key: hp.ospf.reference.cost
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.14.1.1.11.0
+      delay: 15m
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: vendor-hp
+      status: DISABLED
+      description: 'Disabled by default: the monitored J8697A agent returned No Such Object for this vendor OID. Enable only after confirming this OID is implemented by the installed firmware and routing feature set.'
+    - uuid: ff135db0299546f4925a3b028f861ca1
+      name: 'HP SNMP: Authorization notification enabled'
+      type: SNMP_AGENT
+      key: hp.snmp.auth.notify
+      snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.38.1.1.1.3.0
+      delay: 1h
+      history: 30d
+      trends: 365d
+      tags:
+      - tag: component
+        value: vendor-hp
+      valuemap:
+        name: HP-ICF::Enabled status
+    - uuid: 93f2b1587ed34384870c659ca0bee7ff
+      name: 'SNMP traps: Unmatched trap'
+      type: SNMP_TRAP
+      key: snmptrap.fallback
+      history: 30d
+      value_type: LOG
+      trends: '0'
+      description: Receives traps from this switch not matched by another snmptrap[regexp] item.
+      tags:
+      - tag: component
+        value: snmp
+    - uuid: b9721d7d1cd2440fb5a9e584120cbc34
+      name: 'SNMP traps: HP 5406zl RMON event'
+      type: SNMP_TRAP
+      key: snmptrap["(hpSwitchJ8697Atrap|1\.3\.6\.1\.4\.1\.11\.2\.3\.7\.11\.50\.0\.2)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-SWITCH-TRAP-MIB hpSwitchJ8697Atrap. Model-specific RMON event notification for J8697A HP 5406zl.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: c237da6768b34128911aa7844a6f8b21
+      name: 'SNMP traps: HP chassis sensor state change'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-CHASSIS hpicfSensorTrap. Carries sensor status and description after a chassis sensor state change.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: 8913d07113be465390586b82ce00f9e3
+      name: 'SNMP traps: HP Fault Finder'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-FAULT-FINDER-MIB hpicfFaultFinderTrap. Generated when Fault Finder creates a log entry.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: cd3809e2a23c45d48433df2ae1722d6a
+      name: 'SNMP traps: HP power supply status change'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-CHASSIS hpicfPowerSupplyStatusTrap. Carries power supply slot and new status.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: 8a782be5d0d142d4858498020b21974c
+      name: 'SNMP traps: HP SNMP authorization failure'
+      type: SNMP_TRAP
+      key: snmptrap["(hpicfSnmpAuthFail|1\.3\.6\.1\.4\.1\.11\.2\.14\.11\.5\.1\.38\.0\.1)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP-ICF-SNMP-MIB hpicfSnmpAuthFail. Generated when an SNMP SET fails authorization on a security-related object in the hpicf tree.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: mib
+        value: vendor-specific
+    - uuid: a35243a9baab4182a8d0a6c57589b2fe
+      name: 'SNMP trap: coldStart'
+      type: SNMP_TRAP
+      key: snmptrap["(SNMPv2-MIB::coldStart|coldStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.1)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: SNMP entity reinitialized and configuration may have changed.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: c1097ce12bb94af4836008480752c855
+        expression: nodata(/HP ProCurve 5406 by SNMP/snmptrap["(SNMPv2-MIB::coldStart|coldStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.1)"],2h)=0
+        name: 'SNMP trap: coldStart'
+        priority: WARNING
+        description: Closes automatically after 2h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 2c64fdd996fd4a69bd2878e4706a720a
+      name: 'SNMP trap: warmStart'
+      type: SNMP_TRAP
+      key: snmptrap["(SNMPv2-MIB::warmStart|warmStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.2)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: SNMP entity reinitialized with configuration unaltered.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 6dea648ad45c4615a9a65aba82f96f66
+        expression: nodata(/HP ProCurve 5406 by SNMP/snmptrap["(SNMPv2-MIB::warmStart|warmStart|1\.3\.6\.1\.6\.3\.1\.1\.5\.2)"],2h)=0
+        name: 'SNMP trap: warmStart'
+        priority: WARNING
+        description: Closes automatically after 2h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 4a2fd0cca4b740808f207632b9a8dfe7
+      name: 'SNMP trap: linkDown'
+      type: SNMP_TRAP
+      key: snmptrap["(IF-MIB::linkDown|linkDown|1\.3\.6\.1\.6\.3\.1\.1\.5\.3)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: Standard interface linkDown notification.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 075e25bfbcf7409894590fcad6b5e9d4
+      name: 'SNMP trap: linkUp'
+      type: SNMP_TRAP
+      key: snmptrap["(IF-MIB::linkUp|linkUp|1\.3\.6\.1\.6\.3\.1\.1\.5\.4)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: Standard interface linkUp notification.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: a5b25bf316b748acaf1691cc35c07403
+      name: 'SNMP trap: authenticationFailure'
+      type: SNMP_TRAP
+      key: snmptrap["(SNMPv2-MIB::authenticationFailure|authenticationFailure|1\.3\.6\.1\.6\.3\.1\.1\.5\.5)"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: SNMP message was not properly authenticated.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 419fad02406f4de196eaf1f80c4af2b2
+        expression: nodata(/HP ProCurve 5406 by SNMP/snmptrap["(SNMPv2-MIB::authenticationFailure|authenticationFailure|1\.3\.6\.1\.6\.3\.1\.1\.5\.5)"],48h)=0
+        name: 'SNMP trap: authenticationFailure'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: c557fd22536e4e798b0da87c1cdd6994
+      name: 'SNMP trap: HP sensor bad'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(bad\(2\)|INTEGER: 2)|bad\(2\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP chassis sensor changed to bad.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: d6e1d0fc2c314cb39dc95c3e7d207795
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(bad\(2\)|INTEGER: 2)|bad\(2\))"],48h)=0'
+        name: 'SNMP trap: HP sensor bad'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 5f5f2af53dd042cfa9dce2670bd97c17
+      name: 'SNMP trap: HP sensor warning'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(warning\(3\)|INTEGER: 3)|warning\(3\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP chassis sensor changed to warning.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: e76104754fd7458495bffb0e62babc22
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfSensorTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.3).*?(hpicfSensorStatus[^\n]*(warning\(3\)|INTEGER: 3)|warning\(3\))"],48h)=0'
+        name: 'SNMP trap: HP sensor warning'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 9d9cafadd3f748ccbd4fc1d0c21027c5
+      name: 'SNMP trap: HP power supply faulted'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(faulted\(4\)|INTEGER: 4)|faulted\(4\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP internal power supply changed to faulted.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 68e90e3cb7af45af9ac83634e0e966a9
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(faulted\(4\)|INTEGER: 4)|faulted\(4\))"],48h)=0'
+        name: 'SNMP trap: HP power supply faulted'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: eb83913695654df586fb1077c139b529
+      name: 'SNMP trap: HP power supply removed'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(removed\(3\)|INTEGER: 3)|removed\(3\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP internal power supply was removed.
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 30741791f8a245199c5b3cfa10732075
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfPowerSupplyStatusTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.6).*?(hpicfPowerSupplyStatus[^\n]*(removed\(3\)|INTEGER: 3)|removed\(3\))"],48h)=0'
+        name: 'SNMP trap: HP power supply removed'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: f24ab25ee9b8419aaeafeb6da8a8a2ef
+      name: 'SNMP trap: HP Fault Finder - Bad interface driver'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badDriver\(1\)|INTEGER: 1)|badDriver\(1\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType badDriver(1).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: f708fb158b504928ad84f0a404dfe6ea
+      name: 'SNMP trap: HP Fault Finder - Bad transceiver'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badXcvr\(2\)|INTEGER: 2)|badXcvr\(2\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType badXcvr(2).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: c0dc851ff98240bf8cdbb756c0ea99da
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badXcvr\(2\)|INTEGER: 2)|badXcvr\(2\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Bad transceiver'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: be1ef093af9046cfaede0c99cf0ef9a9
+      name: 'SNMP trap: HP Fault Finder - Bad cable'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badCable\(3\)|INTEGER: 3)|badCable\(3\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType badCable(3).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: c344fa1daf554b7fbf74b57fa45a7f78
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(badCable\(3\)|INTEGER: 3)|badCable\(3\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Bad cable'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 190837da52de4e919d1857660d5a15d2
+      name: 'SNMP trap: HP Fault Finder - Cable too long'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(tooLongCable\(4\)|INTEGER: 4)|tooLongCable\(4\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType tooLongCable(4).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: cb8bbf8a91cb4b9882e24c71f07c5350
+      name: 'SNMP trap: HP Fault Finder - Bandwidth threshold exceeded'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(overBandwidth\(5\)|INTEGER: 5)|overBandwidth\(5\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType overBandwidth(5).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: c556370ec0714802a39fd371cf30e803
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(overBandwidth\(5\)|INTEGER: 5)|overBandwidth\(5\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Bandwidth threshold exceeded'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: f05c8ac2291e46c9a0789d0a7e38a8ff
+      name: 'SNMP trap: HP Fault Finder - Broadcast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStorm\(6\)|INTEGER: 6)|bcastStorm\(6\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType bcastStorm(6).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 07607f0f184241a1a9b37828e1f76169
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStorm\(6\)|INTEGER: 6)|bcastStorm\(6\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Broadcast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 2b6a1864f1874b2dbc27b149ab9aaa7c
+      name: 'SNMP trap: HP Fault Finder - Network partition'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(partition\(7\)|INTEGER: 7)|partition\(7\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType partition(7).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 195e436bf5d54da58de4432563e9e5ea
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(partition\(7\)|INTEGER: 7)|partition\(7\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Network partition'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 7405bba630ab43c4af4f0fbc8df8c3f3
+      name: 'SNMP trap: HP Fault Finder - Misconfigured SQE'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(misconfiguredSQE\(8\)|INTEGER: 8)|misconfiguredSQE\(8\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType misconfiguredSQE(8).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: fb92398850e945ceb19cc52ec62011ae
+      name: 'SNMP trap: HP Fault Finder - Polarity reversal'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(polarityReversal\(9\)|INTEGER: 9)|polarityReversal\(9\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType polarityReversal(9).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: efa8b08173624af885561c0344de480b
+      name: 'SNMP trap: HP Fault Finder - Network loop'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(networkLoop\(10\)|INTEGER: 10)|networkLoop\(10\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType networkLoop(10).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 6d8ee85fb596479497fe4a8f5883370f
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(networkLoop\(10\)|INTEGER: 10)|networkLoop\(10\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Network loop'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 016122c63be445ecbf3d38f24fefdf51
+      name: 'SNMP trap: HP Fault Finder - Loss of link'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfLink\(11\)|INTEGER: 11)|lossOfLink\(11\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType lossOfLink(11).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 84453c7567c0498bb8d7c4e5d4f94b54
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfLink\(11\)|INTEGER: 11)|lossOfLink\(11\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Loss of link'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 2237a9cce0a54f639596a53a180a5744
+      name: 'SNMP trap: HP Fault Finder - Port security violation'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSecurityViolation\(12\)|INTEGER: 12)|portSecurityViolation\(12\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType portSecurityViolation(12).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 5a101320c6344c5287f1cd05d4e700e3
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSecurityViolation\(12\)|INTEGER: 12)|portSecurityViolation\(12\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Port security violation'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 766b3bb33f0d4504bc2de8a38f590dcb
+      name: 'SNMP trap: HP Fault Finder - Backup link transition'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(backupLinkTransition\(13\)|INTEGER: 13)|backupLinkTransition\(13\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType backupLinkTransition(13).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: f99efdf4a37a4c0289f74578c1d87de1
+      name: 'SNMP trap: HP Fault Finder - Meshing fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(meshingFault\(14\)|INTEGER: 14)|meshingFault\(14\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType meshingFault(14).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 8a45fe9f32d2433da8ca84d7dc447e16
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(meshingFault\(14\)|INTEGER: 14)|meshingFault\(14\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Meshing fault'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: f4a74ff31acf4229a9d363a116d5ace8
+      name: 'SNMP trap: HP Fault Finder - Fan fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(fanFault\(15\)|INTEGER: 15)|fanFault\(15\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType fanFault(15).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: d9e227efa1a64c4895fd729f3e163f3c
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(fanFault\(15\)|INTEGER: 15)|fanFault\(15\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Fan fault'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 9ea32f6680c04ef3a8a632164aaf4dd6
+      name: 'SNMP trap: HP Fault Finder - Redundant power supply fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(rpsFault\(16\)|INTEGER: 16)|rpsFault\(16\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType rpsFault(16).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 723025766bf14e549ae65fcfc196cbd4
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(rpsFault\(16\)|INTEGER: 16)|rpsFault\(16\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Redundant power supply fault'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: ab7456aacd014575baf1f078b56a595a
+      name: 'SNMP trap: HP Fault Finder - Stuck at 10 Mb'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(stuck10MbFault\(17\)|INTEGER: 17)|stuck10MbFault\(17\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType stuck10MbFault(17).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: d36c1ca3e53e44cc9464ab3e73492565
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(stuck10MbFault\(17\)|INTEGER: 17)|stuck10MbFault\(17\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Stuck at 10 Mb'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: d2aa9a80b7064130aded32147d7300c9
+      name: 'SNMP trap: HP Fault Finder - Loss of stack member'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfStackMember\(18\)|INTEGER: 18)|lossOfStackMember\(18\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType lossOfStackMember(18).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 50278d642c044ca98a05af2e4366a3a8
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(lossOfStackMember\(18\)|INTEGER: 18)|lossOfStackMember\(18\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Loss of stack member'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: d56a02e1b8d1485db0b47785c5b85130
+      name: 'SNMP trap: HP Fault Finder - Hot-swap reboot'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(hotSwapReboot\(19\)|INTEGER: 19)|hotSwapReboot\(19\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType hotSwapReboot(19).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: d39e83ef8a65493dbc2629c4c147e727
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(hotSwapReboot\(19\)|INTEGER: 19)|hotSwapReboot\(19\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Hot-swap reboot'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 6bc888604996407bbeaf94e5124d5e48
+      name: 'SNMP trap: HP Fault Finder - Duplex mismatch HDX'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchHDX\(20\)|INTEGER: 20)|duplexMismatchHDX\(20\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType duplexMismatchHDX(20).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 63d8188fa642408695143a820958f5e1
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchHDX\(20\)|INTEGER: 20)|duplexMismatchHDX\(20\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Duplex mismatch HDX'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 5230f816e085479ca499e534e242290f
+      name: 'SNMP trap: HP Fault Finder - Duplex mismatch FDX'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchFDX\(21\)|INTEGER: 21)|duplexMismatchFDX\(21\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType duplexMismatchFDX(21).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: c905ccff4a4e46f2afc2d9de4acc4bdc
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(duplexMismatchFDX\(21\)|INTEGER: 21)|duplexMismatchFDX\(21\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Duplex mismatch FDX'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: cd592c13b46c4a4580a83b0dd5416d9f
+      name: 'SNMP trap: HP Fault Finder - Flow-control/jumbo fault'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(flowcntlJumbosFault\(22\)|INTEGER: 22)|flowcntlJumbosFault\(22\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType flowcntlJumbosFault(22).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: f73f40d1c35047d5a751f6adeb8be903
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(flowcntlJumbosFault\(22\)|INTEGER: 22)|flowcntlJumbosFault\(22\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Flow-control/jumbo fault'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 92efa251edee45d7b11cd131e881f432
+      name: 'SNMP trap: HP Fault Finder - Port self-test failure'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSelftestFailure\(23\)|INTEGER: 23)|portSelftestFailure\(23\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType portSelftestFailure(23).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 364a41bb5f6b4c9cb96120e155a375b4
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(portSelftestFailure\(23\)|INTEGER: 23)|portSelftestFailure\(23\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Port self-test failure'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: ab8d4e9694384f73bb5d25c6fe184b56
+      name: 'SNMP trap: HP Fault Finder - Transceiver unidentified'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnidentified\(24\)|INTEGER: 24)|xcvrUnidentified\(24\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrUnidentified(24).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: b5561fe2abf545a8958fe6ad19c90994
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnidentified\(24\)|INTEGER: 24)|xcvrUnidentified\(24\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver unidentified'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: df58c0d10b4a46b48ae6b5dbda9a5c99
+      name: 'SNMP trap: HP Fault Finder - Transceiver unsupported'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnsupported\(25\)|INTEGER: 25)|xcvrUnsupported\(25\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrUnsupported(25).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 596074d024604307bc82440f9e9c59c7
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrUnsupported\(25\)|INTEGER: 25)|xcvrUnsupported\(25\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver unsupported'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 2eeb400929ff4efcbb1df4144a339a38
+      name: 'SNMP trap: HP Fault Finder - Connection-rate filter notification'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfNotify\(26\)|INTEGER: 26)|crfNotify\(26\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType crfNotify(26).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 43b1f46725b443bb848ac8ecdd476c0c
+      name: 'SNMP trap: HP Fault Finder - Connection-rate filter throttled'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfThrottled\(27\)|INTEGER: 27)|crfThrottled\(27\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType crfThrottled(27).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: d47f5feaa4124cce9f962ed9420457bc
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfThrottled\(27\)|INTEGER: 27)|crfThrottled\(27\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Connection-rate filter throttled'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 601c6a29431a4133be8f667cb2801bfa
+      name: 'SNMP trap: HP Fault Finder - Connection-rate filter blocked'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfBlocked\(28\)|INTEGER: 28)|crfBlocked\(28\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType crfBlocked(28).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: c00a123fb9eb4e35972e88a48eecdba5
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(crfBlocked\(28\)|INTEGER: 28)|crfBlocked\(28\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Connection-rate filter blocked'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: b66857d4d7d04f14bf242931464d00a7
+      name: 'SNMP trap: HP Fault Finder - Transceiver not yet supported'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotYetSupported\(29\)|INTEGER: 29)|xcvrNotYetSupported\(29\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrNotYetSupported(29).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: d3213317588e4f7893e16fe22dccacda
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotYetSupported\(29\)|INTEGER: 29)|xcvrNotYetSupported\(29\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver not yet supported'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 0310d7eff5454d6a9dc610d824cff610
+      name: 'SNMP trap: HP Fault Finder - Transceiver B-revision only'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrBRevOnly\(30\)|INTEGER: 30)|xcvrBRevOnly\(30\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrBRevOnly(30).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 4b1dfef3ac2f4bc7a4eab01e1f3635ff
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrBRevOnly\(30\)|INTEGER: 30)|xcvrBRevOnly\(30\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver B-revision only'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 6edb9169a949452caebff4156eaf0f6e
+      name: 'SNMP trap: HP Fault Finder - Transceiver unsupported on port'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotSupportedOnPort\(31\)|INTEGER: 31)|xcvrNotSupportedOnPort\(31\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrNotSupportedOnPort(31).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: ade7636cb7f147dc9b9efdde320d3602
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrNotSupportedOnPort\(31\)|INTEGER: 31)|xcvrNotSupportedOnPort\(31\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver unsupported on port'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: edeee63258bf488cbeb201cb732a3210
+      name: 'SNMP trap: HP Fault Finder - PHY read failure'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(phyReadFailure\(32\)|INTEGER: 32)|phyReadFailure\(32\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType phyReadFailure(32).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 2f53245764c9407997f4d6319be12fce
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(phyReadFailure\(32\)|INTEGER: 32)|phyReadFailure\(32\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - PHY read failure'
+        priority: HIGH
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 6e891a872a8c4893b348975b8df42aaf
+      name: 'SNMP trap: HP Fault Finder - Link flap'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlap\(33\)|INTEGER: 33)|linkFlap\(33\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType linkFlap(33).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 2fc1919420a645f2873875c85594df24
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlap\(33\)|INTEGER: 33)|linkFlap\(33\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Link flap'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: d348e833be20445d89d9ed284d4701fc
+      name: 'SNMP trap: HP Fault Finder - Intel 82566DM port protection'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(intel82566dmportprotect\(34\)|INTEGER: 34)|intel82566dmportprotect\(34\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType intel82566dmportprotect(34).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 876a4410a99946739472d335b48cf73b
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(intel82566dmportprotect\(34\)|INTEGER: 34)|intel82566dmportprotect\(34\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Intel 82566DM port protection'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 8abfa7522b80488387ba5a35740a0061
+      name: 'SNMP trap: HP Fault Finder - Transceiver quantity exceeded'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrExceedQty\(35\)|INTEGER: 35)|xcvrExceedQty\(35\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrExceedQty(35).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: ccdec627939c4df0be6566b6c2cea2db
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrExceedQty\(35\)|INTEGER: 35)|xcvrExceedQty\(35\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Transceiver quantity exceeded'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: def9fcdd26394f6bbe911ea9224f09f1
+      name: 'SNMP trap: HP Fault Finder - Cloned transceiver'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrClone\(36\)|INTEGER: 36)|xcvrClone\(36\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrClone(36).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 4c1c3cbfdcec4e25adccf0b821b0622a
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrClone\(36\)|INTEGER: 36)|xcvrClone\(36\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Cloned transceiver'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 341fe66d74fb4a08b846ed44d89a7fb4
+      name: 'SNMP trap: HP Fault Finder - Cloned transceiver reminder'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(xcvrCloneReminder\(37\)|INTEGER: 37)|xcvrCloneReminder\(37\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType xcvrCloneReminder(37).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 5059b76f8d374a779602bfdb4d486d27
+      name: 'SNMP trap: HP Fault Finder - Per-port broadcast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStormPerPort\(38\)|INTEGER: 38)|bcastStormPerPort\(38\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType bcastStormPerPort(38).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: e95e6baabfde487091ba11f58d755ba0
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(bcastStormPerPort\(38\)|INTEGER: 38)|bcastStormPerPort\(38\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Per-port broadcast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: a027c94908ed45e69d76743d263ffa69
+      name: 'SNMP trap: HP Fault Finder - Per-port link flap'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlapPerPort\(39\)|INTEGER: 39)|linkFlapPerPort\(39\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType linkFlapPerPort(39).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 0d56791a08cb49488ca57c541ae55bec
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(linkFlapPerPort\(39\)|INTEGER: 39)|linkFlapPerPort\(39\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Per-port link flap'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: c5614506a56948a8b750e479b86ac5cb
+      name: 'SNMP trap: HP Fault Finder - Non-standard receive preamble'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(rxNonStdPreamble\(40\)|INTEGER: 40)|rxNonStdPreamble\(40\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType rxNonStdPreamble(40).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+    - uuid: 8336551718214d2aa8e94919afa68729
+      name: 'SNMP trap: HP Fault Finder - Multicast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStorm\(41\)|INTEGER: 41)|mcastStorm\(41\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType mcastStorm(41).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 76d0eab8ad3547fe8bee92a64510dff0
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStorm\(41\)|INTEGER: 41)|mcastStorm\(41\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Multicast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: 28a8fa515765428cb08e2f581ab655e2
+      name: 'SNMP trap: HP Fault Finder - Per-port multicast storm'
+      type: SNMP_TRAP
+      key: 'snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStormPerPort\(42\)|INTEGER: 42)|mcastStormPerPort\(42\))"]'
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: HP Fault Finder HpicfFaultType mcastStormPerPort(42).
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: event
+      triggers:
+      - uuid: 61f5d575742b4492a6508e6111647d96
+        expression: 'nodata(/HP ProCurve 5406 by SNMP/snmptrap["(hpicfFaultFinderTrap|1\.3\.6\.1\.4\.1\.11\.2\.14\.12\.1\.0\.5).*?(hpicfFfLogFaultType[^\n]*(mcastStormPerPort\(42\)|INTEGER: 42)|mcastStormPerPort\(42\))"],48h)=0'
+        name: 'SNMP trap: HP Fault Finder - Per-port multicast storm'
+        priority: AVERAGE
+        description: Closes automatically after 48h without another matching trap.
+        tags:
+        - tag: component
+          value: snmp
+    - uuid: db5f9c5cb5b54316851290158394c8de
+      name: 'SNMP trap: HP management authentication failure'
+      type: SNMP_TRAP
+      key: snmptrap["(?i)auth:\s*Invalid user name/password on\s+(WEB-UI|SSH|TELNET)\s+session"]
+      history: 30d
+      trends: '0'
+      value_type: LOG
+      description: Matches HP J8697A RMON event text for invalid management login credentials on WEB-UI, SSH, or TELNET sessions. The matching is case-insensitive and tolerates variable whitespace.
+      triggers:
+      - uuid: 20d90c86652a47f890a0bbef7656aeba
+        expression: nodata(/HP ProCurve 5406 by SNMP/snmptrap["(?i)auth:\s*Invalid user name/password on\s+(WEB-UI|SSH|TELNET)\s+session"],48h)=0
+        name: HP management authentication failure detected
+        priority: AVERAGE
+        description: A failed login was reported for WEB-UI, SSH, or TELNET. The problem closes automatically after 48 hours without another matching trap.
+        tags:
+        - tag: scope
+          value: security
+        - tag: component
+          value: management-access
+      tags:
+      - tag: component
+        value: snmp
+      - tag: scope
+        value: security
+      - tag: event
+        value: authentication
+    discovery_rules:
+    - uuid: 5b6c221175914ca99d717fac9e9d6b99
+      name: Network interface discovery
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#IFNAME},1.3.6.1.2.1.31.1.1.1.1,{#IFALIAS},1.3.6.1.2.1.31.1.1.1.18]
+      key: net.if.discovery
+      delay: 1h
+      item_prototypes:
+      - uuid: ae3086a7c5d941bc8edefeb57f87bb20
+        name: 'Interface {#IFNAME}: Operational status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}
+        key: net.if.status[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        valuemap:
+          name: IF-MIB::ifOperStatus
+        trigger_prototypes:
+        - uuid: 2d0f90bf62d14ccfb5a64e16785941cc
+          expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/HP ProCurve 5406 by SNMP/net.if.status[{#SNMPINDEX}])<>1 and count(/HP ProCurve 5406 by SNMP/net.if.status[{#SNMPINDEX}],2h,"eq",1)>0'
+          name: 'Interface {#IFNAME}: Link down'
+          priority: INFO
+          description: Information event generated only after a transition from up to a non-up state. If the interface stays down, the problem closes automatically when the last up sample leaves the 2-hour evaluation window.
+            If the interface returns up earlier, it closes immediately.
+      - uuid: a5f9f635f5eb46e2a2270348b0806be5
+        name: 'Interface {#IFNAME}: Inbound traffic'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}
+        key: net.if.in[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: bps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+      - uuid: 990f5b714ffd46ea9f864ea9711fbfc8
+        name: 'Interface {#IFNAME}: Outbound traffic'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}
+        key: net.if.out[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: bps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+      - uuid: 80667f9f418c49899fcd8929fe2c6747
+        name: 'Interface {#IFNAME}: Inbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}
+        key: net.if.in.errors[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: 9a45dc5f69db4c05a2c70f0df9304c3c
+        name: 'Interface {#IFNAME}: Outbound errors'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}
+        key: net.if.out.errors[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: cffaef2cf9a24e4ab13b580f5bb00bd7
+        name: 'Interface {#IFNAME}: Inbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}
+        key: net.if.in.discards[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: a5009fa0bb8d4d0a8612f931c997b15a
+        name: 'Interface {#IFNAME}: Outbound discards'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}
+        key: net.if.out.discards[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters: []
+      - uuid: 6607f9a97e4a4da2a1d4ac59b8781eee
+        name: 'Interface {#IFNAME}: Speed'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.15.{#SNMPINDEX}
+        key: net.if.speed[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: bps
+        preprocessing:
+        - type: MULTIPLIER
+          parameters:
+          - '1000000'
+      - uuid: ffdb1e6edd024c818bf4e19f0008cd86
+        name: 'Interface {#IFNAME}: Alias'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.18.{#SNMPINDEX}
+        key: net.if.alias[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: CHAR
+      graph_prototypes:
+      - uuid: 27bca20b9df844cc95ab565e4ca2763b
+        name: 'Interface {#IFNAME}: Bandwidth'
+        graph_items:
+        - color: 1A7C11
+          item:
+            host: HP ProCurve 5406 by SNMP
+            key: net.if.in[{#SNMPINDEX}]
+        - sortorder: '1'
+          color: 2774A4
+          item:
+            host: HP ProCurve 5406 by SNMP
+            key: net.if.out[{#SNMPINDEX}]
+    - uuid: a93e164811a84a3c8030a68981881708
+      name: HP module CPU discovery
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#HWMODEL},1.3.6.1.4.1.11.2.14.11.5.1.9.20.1.1.1.1,{#SERIAL},1.3.6.1.4.1.11.2.14.11.5.1.9.20.1.1.1.2]
+      key: hp.module.discovery
+      delay: 1h
+      item_prototypes:
+      - uuid: aa7c9948835f4730bee2ef4765f0ea06
+        name: 'HP module {#HWMODEL}: Hardware model'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.9.20.1.1.1.1.{#SNMPINDEX}
+        key: hp.module.model[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        value_type: CHAR
+      - uuid: 9d44af1edf56436298eb390968b8dfea
+        name: 'HP module {#HWMODEL}: Serial number'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.9.20.1.1.1.2.{#SNMPINDEX}
+        key: hp.module.serial[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        value_type: CHAR
+      - uuid: 082aaa96fd9a4926bf15ebd29ea10b04
+        name: 'HP module {#HWMODEL}: CPU current utilization'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.9.20.1.1.1.3.{#SNMPINDEX}
+        key: hp.module.cpu.current[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        units: '%'
+      - uuid: 45c01b0a8e524ae892f902979d994e8a
+        name: 'HP module {#HWMODEL}: CPU average utilization'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.4.1.11.2.14.11.5.1.9.20.1.1.1.4.{#SNMPINDEX}
+        key: hp.module.cpu.average[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        trends: 365d
+        units: '%'
+    macros:
+    - macro: '{$IFCONTROL}'
+      value: '1'
+    - macro: '{$HP.MODULE.CPU.HIGH}'
+      value: '85'
+    dashboards:
+    - uuid: 01489c8ba8c74190ba4bb5dc4d112296
+      name: HP 5406 - Operations
+      display_period: '3600'
+      auto_start: 'YES'
+      pages:
+      - name: Overview
+        widgets:
+        - type: item
+          name: System name
+          x: '0'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: system.name
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: FCI91
+        - type: item
+          name: Location
+          x: '18'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: system.location
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: JYG85
+        - type: item
+          name: Uptime
+          x: '36'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: system.uptime
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 7GIGD
+        - type: item
+          name: SNMP availability
+          x: '54'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: snmp.check
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: JDCJV
+        - type: graph
+          name: Aggregate throughput (in/out)
+          x: '0'
+          y: '3'
+          width: '36'
+          height: '7'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: net.if.total.in
+          - type: STRING
+            name: color.0
+            value: 1A7C11
+          - type: ITEM
+            name: itemid.1
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: net.if.total.out
+          - type: STRING
+            name: color.1
+            value: 2774A4
+          - type: STRING
+            name: reference
+            value: OGBN9
+        - type: graph
+          name: Total aggregate throughput
+          x: '36'
+          y: '3'
+          width: '36'
+          height: '7'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: net.if.total
+          - type: STRING
+            name: color.0
+            value: E39B00
+          - type: STRING
+            name: reference
+            value: QHEJU
+        - type: problems
+          name: Current problems
+          x: '0'
+          y: '10'
+          width: '72'
+          height: '7'
+          fields:
+          - type: INTEGER
+            name: show_tags
+            value: '3'
+          - type: INTEGER
+            name: sort_triggers
+            value: '16'
+          - type: STRING
+            name: reference
+            value: 219OD
+      - name: Interfaces
+        widgets:
+        - type: graphprototype
+          name: Bandwidth per interface (in/out)
+          x: '0'
+          y: '0'
+          width: '72'
+          height: '10'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '2'
+          - type: GRAPH_PROTOTYPE
+            name: graphid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              name: 'Interface {#IFNAME}: Bandwidth'
+          - type: INTEGER
+            name: columns
+            value: '3'
+          - type: INTEGER
+            name: rows
+            value: '3'
+          - type: STRING
+            name: reference
+            value: HKTFN
+        - type: graph
+          name: Total inbound
+          x: '0'
+          y: '10'
+          width: '36'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: net.if.total.in
+          - type: STRING
+            name: color.0
+            value: 1A7C11
+          - type: STRING
+            name: reference
+            value: 8FZKG
+        - type: graph
+          name: Total outbound
+          x: '36'
+          y: '10'
+          width: '36'
+          height: '6'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '1'
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: net.if.total.out
+          - type: STRING
+            name: color.0
+            value: 2774A4
+          - type: STRING
+            name: reference
+            value: AA9L5
+        - type: graphprototype
+          name: Inbound errors per interface
+          x: '0'
+          y: '16'
+          width: '72'
+          height: '8'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '3'
+          - type: ITEM_PROTOTYPE
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: net.if.in.errors[{#SNMPINDEX}]
+          - type: INTEGER
+            name: columns
+            value: '3'
+          - type: INTEGER
+            name: rows
+            value: '2'
+          - type: STRING
+            name: reference
+            value: QLHWA
+      - name: System & vendor health
+        widgets:
+        - type: item
+          name: HA failovers
+          x: '0'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.ha.failovers
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: MFF66
+        - type: item
+          name: HA last failover
+          x: '18'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.ha.last.failover
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: 1RB4Y
+        - type: item
+          name: HA redundancy reason
+          x: '36'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.ha.failure.reason
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: SFFRX
+        - type: item
+          name: SNMP auth notify
+          x: '54'
+          y: '0'
+          width: '18'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.snmp.auth.notify
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: ZLD6I
+        - type: item
+          name: Active routes
+          x: '0'
+          y: '3'
+          width: '24'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.ip.route.count
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: OOYVB
+        - type: item
+          name: ARP aging
+          x: '24'
+          y: '3'
+          width: '24'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.ip.arp.aging
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: RPDWD
+        - type: item
+          name: OSPF reference cost
+          x: '48'
+          y: '3'
+          width: '24'
+          height: '3'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.ospf.reference.cost
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '18'
+          - type: STRING
+            name: reference
+            value: DLFKU
+        - type: graphprototype
+          name: Module CPU utilization
+          x: '0'
+          y: '6'
+          width: '36'
+          height: '8'
+          fields:
+          - type: INTEGER
+            name: source_type
+            value: '3'
+          - type: ITEM_PROTOTYPE
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: hp.module.cpu.current[{#SNMPINDEX}]
+          - type: INTEGER
+            name: columns
+            value: '2'
+          - type: INTEGER
+            name: rows
+            value: '2'
+          - type: STRING
+            name: reference
+            value: 8F1XX
+        - type: item
+          name: System description
+          x: '36'
+          y: '6'
+          width: '36'
+          height: '8'
+          fields:
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: HP ProCurve 5406 by SNMP
+              key: system.descr
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '3'
+          - type: INTEGER
+            name: show.2
+            value: '4'
+          - type: INTEGER
+            name: value_size
+            value: '12'
+          - type: STRING
+            name: reference
+            value: ZHQGO
+    valuemaps:
+    - uuid: bb53e12c28fc49c89bda474a87693120
+      name: IF-MIB::ifOperStatus
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: notPresent
+      - value: '7'
+        newvalue: lowerLayerDown
+    - uuid: a7ded0a9ca354a07ab20c7ea4d44bcb8
+      name: HP-ICF::HA failure reason
+      mappings:
+      - value: '1'
+        newvalue: noRedundantModule
+      - value: '2'
+        newvalue: noFailure
+      - value: '3'
+        newvalue: unknownReason
+      - value: '4'
+        newvalue: mismatchOS
+      - value: '5'
+        newvalue: failedSelftest
+      - value: '6'
+        newvalue: communicationFailure
+      - value: '7'
+        newvalue: redundancyDisable
+    - uuid: b742d8f89e7d40748c10a67e66828e94
+      name: HP-ICF::Enabled status
+      mappings:
+      - value: '1'
+        newvalue: enabled
+      - value: '2'
+        newvalue: disabled
+    tags:
+    - tag: class
+      value: network
+    - tag: target
+      value: hp
+    - tag: target
+      value: hp-enterprise
