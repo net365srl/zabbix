@@ -134,16 +134,6 @@ Se un `snmpget` risponde `No Such Object`, disabilitare il relativo item su quel
 
 ---
 
-## 8. Differenze chiave rispetto al template 5406
-| Aspetto | 5406 | 2530 |
-|---|---|---|
-| Form factor | Chassis modulare | Switch fisso |
-| CPU | Discovery per modulo | Item globale `hp.cpu.util` |
-| Memoria/ambiente | — | CPU, RAM, fan, PSU x2, temperatura |
-| HA / OSPF vendor | Presenti (OSPF disabilitato) | Rimossi |
-| Trap RMON di modello | J8697A (5406zl) | famiglia J9772A…/JL070A |
-
----
 
 ## 9. Changelog sintetico
 - v5: fix widget graph-prototype (`ITEM_PROTOTYPE`/`GRAPH_PROTOTYPE`) — import ora pulito.
